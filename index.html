@@ -89,7 +89,7 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 .goal-bar-wrap{background:#f0f0f0;border-radius:99px;height:11px;margin:6px 0}
 .goal-bar-fill{height:11px;border-radius:99px;transition:width .4s}
 .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.day-col{border:1.5px solid #f0f0f0;border-radius:12px;padding:7px 5px;min-height:130px;background:#fafafa}
+.day-col{border:1.5px solid #f0f0f0;border-radius:12px;padding:7px 5px;min-height:130px;background:#fafafa;transition:background .2s}
 .day-name{font-size:10px;font-weight:600;color:#888;text-align:center;margin-bottom:6px}
 .day-task{font-size:9px;border-radius:5px;padding:3px 4px;margin-bottom:3px;cursor:pointer;line-height:1.3}
 .day-task.responsibility{background:#FCEBEB;color:#A32D2D}
@@ -142,6 +142,7 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
   .week-grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .week-grid{min-width:480px;gap:4px}
   .day-col{min-height:100px}
+  .day-col-today{background:linear-gradient(135deg,#EEEDFE,#E6F1FB) !important;border-color:#AFA9EC !important}
 
   /* Input rows wrap on mobile */
   .input-row{flex-wrap:wrap;gap:6px}
@@ -280,18 +281,52 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 
 <!-- WEEKLY -->
 <div id="tab-weekly" class="section">
+  <!-- Week navigation + calendar -->
   <div class="card">
-    <div class="section-header"><span class="section-icon">📅</span><div class="section-title" style="margin:0">Weekly calendar</div><div style="margin-left:auto"><span class="tag tag-resp">resp</span><span class="tag tag-bonus">bonus</span><span class="tag tag-study-req">hw</span><span class="tag tag-study-bonus">learn</span></div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <button class="btn btn-sm" onclick="changeWeek(-1)">← Prev</button>
+      <div style="text-align:center">
+        <div style="font-size:14px;font-weight:600;color:#3C3489" id="week-label">This week</div>
+        <div style="font-size:11px;color:#888" id="week-range"></div>
+      </div>
+      <button class="btn btn-sm" onclick="changeWeek(1)">Next →</button>
+    </div>
+    <div style="display:flex;justify-content:center;margin-bottom:10px">
+      <button class="btn btn-sm" onclick="goToCurrentWeek()" id="today-btn" style="font-size:11px;color:#534AB7;border-color:#AFA9EC">Today</button>
+    </div>
     <div class="week-grid-wrap"><div class="week-grid" id="week-grid"></div></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;font-size:10px">
+      <span class="tag tag-resp">🛡️ responsibility</span>
+      <span class="tag tag-bonus">⭐ bonus</span>
+      <span class="tag tag-study-req">📝 homework</span>
+      <span class="tag tag-study-bonus">🌟 learning</span>
+    </div>
   </div>
+
+  <!-- Add task to calendar -->
   <div class="card">
-    <div class="section-title">➕ Add recurring task</div>
+    <div class="section-title">➕ Add recurring task to a day</div>
     <div class="input-row">
       <select id="add-day-sel" style="flex:0 0 105px"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option></select>
       <div class="chore-picker" id="cal-picker-wrap"><input type="text" id="cal-chore-input" placeholder="Type or pick a chore..." autocomplete="off" oninput="filterDropdown('cal')" onfocus="openDropdown('cal')" onblur="scheduleClose('cal')"><div class="chore-dropdown" id="cal-dropdown"></div></div>
       <select id="cal-type-sel" style="flex:0 0 125px"><option value="responsibility">Responsibility</option><option value="bonus">Bonus</option><option value="study-required">Homework</option><option value="study-bonus">Learning bonus</option></select>
       <button class="btn" onclick="addToCalendarFromPicker()">Add</button>
     </div>
+    <div style="font-size:11px;color:#888">Tap any task in the calendar above to remove it from that day.</div>
+  </div>
+
+  <!-- Responsibilities from Manage -->
+  <div class="card">
+    <div class="section-header"><span class="section-icon">🛡️</span><div class="section-title" style="margin:0">Responsibilities</div><span class="badge badge-red" style="margin-left:auto;font-size:10px">required daily</span></div>
+    <div style="font-size:11px;color:#888;margin-bottom:10px">These are non-negotiable. Missing one costs points. Tap a day to assign.</div>
+    <div id="weekly-resp-list"></div>
+  </div>
+
+  <!-- Bonus chores from Manage -->
+  <div class="card">
+    <div class="section-header"><span class="section-icon">⭐</span><div class="section-title" style="margin:0">Bonus chores</div><span class="badge badge-green" style="margin-left:auto;font-size:10px">earns points</span></div>
+    <div style="font-size:11px;color:#888;margin-bottom:10px">Add bonus chores to specific days or claim from the Chore Pool tab.</div>
+    <div id="weekly-bonus-list"></div>
   </div>
 </div>
 
@@ -302,6 +337,21 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 
 <!-- LEARNING -->
 <div id="tab-learning" class="section">
+  <!-- Homework section from Manage -->
+  <div class="card">
+    <div class="section-header"><span class="section-icon">📝</span><div class="section-title" style="margin:0">Homework</div><span class="badge badge-blue" style="margin-left:auto;font-size:10px">required</span></div>
+    <div style="font-size:11px;color:#888;margin-bottom:10px">Required study tasks. Missing them costs points. Synced from Manage tab.</div>
+    <div id="learning-hw-list"></div>
+  </div>
+
+  <!-- Learning bonus from Manage -->
+  <div class="card">
+    <div class="section-header"><span class="section-icon">🌟</span><div class="section-title" style="margin:0">Learning bonus tasks</div><span class="badge badge-purple" style="margin-left:auto;font-size:10px">earns points</span></div>
+    <div style="font-size:11px;color:#888;margin-bottom:10px">Optional extras that earn points. Mark as done and submit a report for approval. Synced from Manage tab.</div>
+    <div id="learning-bonus-list"></div>
+  </div>
+
+  <!-- Submit report -->
   <div class="card" style="border:2px solid #B5D4F4;background:linear-gradient(135deg,#E6F1FB,#EEEDFE)">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div style="font-size:30px">🎓</div><div><div style="font-size:14px;font-weight:600;color:#0C447C">Submit a learning report</div><div style="font-size:11px;color:#185FA5">Book · TED talk · Documentary · Online lesson · Podcast…</div></div></div>
     <div class="input-row" style="margin-bottom:8px"><select id="report-kid" style="flex:0 0 120px"></select><select id="report-type" style="flex:1" onchange="updateReportPts()"><option value="book">📖 Book</option><option value="ted">🎤 TED talk</option><option value="documentary">🎬 Documentary</option><option value="online-lesson">💻 Online lesson</option><option value="podcast">🎧 Podcast</option><option value="article">📰 Article</option><option value="other">🌟 Other</option></select></div>
@@ -310,6 +360,8 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><div style="font-size:12px;color:#0C447C;flex:1">Points: <strong id="report-pts-preview">30</strong> ⭐ (parent will approve)</div><input type="number" id="report-custom-pts" placeholder="Override pts" style="width:110px" min="1"></div>
     <button class="btn btn-blue" onclick="submitReport()" style="width:100%">📤 Submit for approval</button>
   </div>
+
+  <!-- Learning log -->
   <div class="card"><div class="section-header"><span class="section-icon">📖</span><div class="section-title" style="margin:0">Learning log</div></div><div id="learning-log"></div></div>
 </div>
 
@@ -598,7 +650,7 @@ let state={
   learningLog:[],pendingReports:[],goals:[],history:[],
   cotw:{choreId:null,bonusPts:20},
   streakSettings:{bonusPts:25,doubleDay:''},
-  pin:'1234',nextId:12,nextParticipantId:3
+  pin:'1234',nextId:12,nextParticipantId:3,weekOffset:0
 };
 
 let unlocked={manage:false,rewards:false,approvals:false,settings:false};
@@ -1000,9 +1052,95 @@ function renderDashboard(){
   if(qc){const bonus=state.chores.filter(c=>c.type==='bonus');qc.innerHTML=bonus.map(c=>`<option value="${c.id}">${choreIcon(c.name,c.icon)} ${c.name} (${c.pts}pts)</option>`).join('');}
 }
 
+function getWeekStart(offset){
+  const now=new Date();
+  const day=now.getDay();
+  const diff=now.getDate()-day+(day===0?-6:1); // Mon=start
+  const mon=new Date(now.setDate(diff));
+  mon.setHours(0,0,0,0);
+  mon.setDate(mon.getDate()+offset*7);
+  return mon;
+}
+function changeWeek(dir){state.weekOffset=(state.weekOffset||0)+dir;save();renderWeekly();}
+function goToCurrentWeek(){state.weekOffset=0;save();renderWeekly();}
+
 function renderWeekly(){
+  const offset=state.weekOffset||0;
+  const weekStart=getWeekStart(offset);
+  const weekEnd=new Date(weekStart);weekEnd.setDate(weekEnd.getDate()+6);
+  const isCurrentWeek=offset===0;
+
+  // Update header labels
+  const wLabel=document.getElementById('week-label');
+  const wRange=document.getElementById('week-range');
+  const todayBtn=document.getElementById('today-btn');
+  if(wLabel)wLabel.textContent=isCurrentWeek?'This week':offset===-1?'Last week':offset===1?'Next week':'Week of '+weekStart.toLocaleDateString('default',{month:'short',day:'numeric'});
+  if(wRange){
+    const fmt=d=>d.toLocaleDateString('default',{month:'short',day:'numeric'});
+    wRange.textContent=fmt(weekStart)+' – '+fmt(weekEnd);
+  }
+  if(todayBtn)todayBtn.style.display=isCurrentWeek?'none':'inline-block';
+
   const grid=document.getElementById('week-grid');if(!grid)return;
-  grid.innerHTML=DAYS.map(d=>{const tasks=(state.calendar[d]||[]).map(id=>getChore(id)).filter(Boolean);return`<div class="day-col"><div class="day-name">${d.slice(0,3)}</div>${tasks.map(c=>`<div class="day-task ${c.type}" onclick="removeFromCalendar('${d}',${c.id})" title="tap to remove">${choreIcon(c.name,c.icon)} ${c.name.length>11?c.name.slice(0,10)+'…':c.name}</div>`).join('')}<div style="font-size:8px;color:#bbb;margin-top:3px;text-align:center">tap to remove</div></div>`;}).join('');
+  const today=new Date();today.setHours(0,0,0,0);
+
+  grid.innerHTML=DAYS.map((d,i)=>{
+    const dayDate=new Date(weekStart);dayDate.setDate(weekStart.getDate()+i);
+    const isToday=dayDate.getTime()===today.getTime();
+    const tasks=(state.calendar[d]||[]).map(id=>getChore(id)).filter(Boolean);
+    const dateStr=dayDate.toLocaleDateString('default',{month:'short',day:'numeric'});
+    return`<div class="day-col${isToday?' day-col-today':''}">
+      <div class="day-name" style="${isToday?'color:#534AB7;font-weight:700':''}">${d.slice(0,3)}</div>
+      <div style="font-size:9px;color:${isToday?'#534AB7':'#aaa'};text-align:center;margin-bottom:5px;font-weight:${isToday?'600':'400'}">${dateStr}</div>
+      ${tasks.map(c=>`<div class="day-task ${c.type}" onclick="removeFromCalendar('${d}',${c.id})" title="tap to remove">${choreIcon(c.name,c.icon)} ${c.name.length>11?c.name.slice(0,10)+'…':c.name}</div>`).join('')}
+      ${tasks.length===0?'<div style="font-size:9px;color:#ddd;text-align:center;margin-top:8px">free</div>':''}
+    </div>`;
+  }).join('');
+
+  // Render responsibilities list
+  const respList=document.getElementById('weekly-resp-list');
+  if(respList){
+    const resps=state.chores.filter(c=>c.type==='responsibility');
+    respList.innerHTML=resps.length===0?'<div style="font-size:13px;color:#888">No responsibilities set yet — add them in Manage tab.</div>':
+      resps.map(c=>{
+        const inCalDays=DAYS.filter(d=>(state.calendar[d]||[]).includes(c.id));
+        return`<div class="chore-row">
+          <span style="font-size:18px">${choreIcon(c.name,c.icon)}</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:500">${c.name}</div>
+          <div style="font-size:10px;color:#888;margin-top:2px">${inCalDays.length>0?'Scheduled: '+inCalDays.map(d=>d.slice(0,3)).join(', '):'Not scheduled any day yet'}</div></div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap">
+            ${DAYS.map(d=>{const has=(state.calendar[d]||[]).includes(c.id);return`<button class="btn btn-sm${has?' btn-red':''}" style="padding:3px 6px;font-size:10px;min-width:30px" onclick="toggleDayChore('${d}',${c.id})" title="${has?'Remove from '+d:'Add to '+d}">${d.slice(0,2)}</button>`;}).join('')}
+          </div>
+        </div>`;
+      }).join('');
+  }
+
+  // Render bonus chores list
+  const bonusList=document.getElementById('weekly-bonus-list');
+  if(bonusList){
+    const bonuses=state.chores.filter(c=>c.type==='bonus');
+    bonusList.innerHTML=bonuses.length===0?'<div style="font-size:13px;color:#888">No bonus chores set yet — add them in Manage tab.</div>':
+      bonuses.map(c=>{
+        const inCalDays=DAYS.filter(d=>(state.calendar[d]||[]).includes(c.id));
+        const diffLabel={easy:'🟢',medium:'🟡',hard:'🔴'};
+        return`<div class="chore-row">
+          <span style="font-size:18px">${choreIcon(c.name,c.icon)}</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:500">${c.name} <span style="font-size:10px">${diffLabel[c.diff||'easy']}</span></div>
+          <div style="font-size:10px;color:#888;margin-top:2px">${c.pts} pts · ${inCalDays.length>0?'Scheduled: '+inCalDays.map(d=>d.slice(0,3)).join(', '):'Not in calendar'}</div></div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap">
+            ${DAYS.map(d=>{const has=(state.calendar[d]||[]).includes(c.id);return`<button class="btn btn-sm${has?' btn-green':''}" style="padding:3px 6px;font-size:10px;min-width:30px" onclick="toggleDayChore('${d}',${c.id})" title="${has?'Remove from '+d:'Add to '+d}">${d.slice(0,2)}</button>`;}).join('')}
+          </div>
+        </div>`;
+      }).join('');
+  }
+}
+
+function toggleDayChore(day,choreId){
+  if(!state.calendar[day])state.calendar[day]=[];
+  const idx=state.calendar[day].indexOf(choreId);
+  if(idx>-1){state.calendar[day].splice(idx,1);}
+  else{state.calendar[day].push(choreId);}
+  save();renderWeekly();
 }
 
 function renderPool(){
@@ -1012,7 +1150,43 @@ function renderPool(){
 }
 
 function renderLearning(){
-  const ids=pIds();const rk=document.getElementById('report-kid');if(rk)rk.innerHTML=ids.map(k=>`<option value="${k}">${state.participants[k].name}</option>`).join('');updateReportPts();
+  const ids=pIds();
+  const rk=document.getElementById('report-kid');
+  if(rk)rk.innerHTML=ids.map(k=>`<option value="${k}">${state.participants[k].name}</option>`).join('');
+  updateReportPts();
+
+  // Homework list (synced from Manage)
+  const hwList=document.getElementById('learning-hw-list');
+  if(hwList){
+    const hws=state.chores.filter(c=>c.type==='study-required');
+    hwList.innerHTML=hws.length===0?'<div style="font-size:13px;color:#888">No homework tasks yet — add them in Manage tab.</div>':
+      hws.map(c=>`<div class="chore-row">
+        <span style="font-size:18px">${choreIcon(c.name,c.icon)}</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:500">${c.name}</div>
+        <div style="font-size:10px;color:#888;margin-top:2px">Required · Missing costs ${state.rates.penalty||5} pts</div></div>
+        <div class="today-btns" style="display:flex;gap:4px">
+          ${ids.map(k=>`<button class="btn btn-sm btn-red" onclick="markDone('${k}',${c.id},'study-required')">${state.participants[k].name} missed</button>`).join('')}
+        </div>
+      </div>`).join('');
+  }
+
+  // Learning bonus list (synced from Manage)
+  const bonusList=document.getElementById('learning-bonus-list');
+  if(bonusList){
+    const bonuses=state.chores.filter(c=>c.type==='study-bonus');
+    const diffLabel={easy:'🟢 Easy',medium:'🟡 Medium',hard:'🔴 Hard'};
+    bonusList.innerHTML=bonuses.length===0?'<div style="font-size:13px;color:#888">No learning bonus tasks yet — add them in Manage tab.</div>':
+      bonuses.map(c=>`<div class="chore-row">
+        <span style="font-size:18px">${choreIcon(c.name,c.icon)}</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:500">${c.name}</div>
+        <div style="font-size:10px;color:#888;margin-top:2px">${diffLabel[c.diff||'easy']} · +${c.pts} pts · submit a report below</div></div>
+        <div class="today-btns" style="display:flex;gap:4px">
+          ${ids.map(k=>`<button class="btn btn-sm btn-blue" onclick="markDone('${k}',${c.id},'study-bonus')">${state.participants[k].name} did it</button>`).join('')}
+        </div>
+      </div>`).join('');
+  }
+
+  // Learning log
   const log=document.getElementById('learning-log');if(!log)return;
   log.innerHTML=[...state.learningLog].reverse().map(r=>`<div class="report-row"><div style="flex-shrink:0">${kidSVG(state.participants[r.kid]?.theme||'pink',32)}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${r.title} <span class="badge badge-blue" style="font-size:10px">${r.typeLabel}</span>${r.status==='returned'?'<span class="badge badge-red" style="font-size:10px;margin-left:3px">returned</span>':''}</div><div style="font-size:11px;color:#888;margin-top:3px">${r.summary.length>110?r.summary.slice(0,110)+'…':r.summary}</div><div style="font-size:10px;color:#bbb;margin-top:3px">${r.kidName} · ${r.date}</div></div>${r.status!=='returned'?`<div style="text-align:right;flex-shrink:0"><div style="font-size:17px;font-weight:700;color:#185FA5">+${r.pts}</div><div style="font-size:9px;color:#888">pts</div></div>`:''}</div>`).join('')||'<div style="font-size:13px;color:#888;text-align:center;padding:16px">📚 No approved reports yet!</div>';
 }
