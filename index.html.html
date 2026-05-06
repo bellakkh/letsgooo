@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Let's Gooo 🚀</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f7ff;min-height:100vh;color:#1a1a2e}
+/* ENTRY GATE */
+#entry-gate{position:fixed;inset:0;background:linear-gradient(135deg,#EEEDFE,#E1F5EE);display:flex;align-items:center;justify-content:center;z-index:9999}
+.gate-box{background:#fff;border-radius:20px;padding:2.5rem 2rem;text-align:center;max-width:320px;width:90%;box-shadow:0 8px 32px rgba(83,74,183,.15);border:1.5px solid #CECBF6}
+.gate-logo{font-size:48px;margin-bottom:8px}
+.gate-title{font-size:22px;font-weight:600;color:#3C3489;margin-bottom:4px}
+.gate-sub{font-size:13px;color:#888;margin-bottom:24px}
+.gate-dots{display:flex;justify-content:center;gap:12px;margin:20px 0}
+.gate-dot{width:14px;height:14px;border-radius:50%;border:2px solid #CECBF6;background:transparent;transition:all .2s}
+.gate-dot.filled{background:#534AB7;border-color:#534AB7}
+.gate-dot.error{background:#E24B4A;border-color:#E24B4A}
+.gate-numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:220px;margin:0 auto}
+.gate-btn{height:52px;border:1.5px solid #CECBF6;border-radius:12px;background:#fff;cursor:pointer;font-size:20px;font-weight:500;color:#3C3489;transition:all .15s}
+.gate-btn:hover{background:#EEEDFE}
+.gate-btn:active{transform:scale(0.95)}
+.gate-err{font-size:13px;color:#E24B4A;margin-top:12px;min-height:18px}
+/* APP */
+#app{display:none;max-width:900px;margin:0 auto;padding:12px}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 16px;background:linear-gradient(135deg,#EEEDFE,#E1F5EE);border-radius:16px;border:1.5px solid #AFA9EC}
+.appname{font-size:20px;font-weight:600;color:#3C3489}
+.tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px}
+.tab{padding:7px 12px;border:1.5px solid #e0e0e0;border-radius:10px;background:#fff;cursor:pointer;font-size:12px;color:#666;transition:all .15s}
+.tab:hover{background:#f5f5f5}
+.tab.active{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC;font-weight:600}
+.tab.locked{color:#bbb}
+.section{display:none}.section.active{display:block}
+.card{background:#fff;border:1.5px solid #f0f0f0;border-radius:16px;padding:16px 18px;margin-bottom:12px}
+.kid-card-dra{background:linear-gradient(135deg,#FBEAF0,#EEEDFE);border:2px solid #ED93B1}
+.kid-card-lio{background:linear-gradient(135deg,#FAEEDA,#EAF3DE);border:2px solid #EF9F27}
+.badge{display:inline-block;padding:3px 9px;border-radius:8px;font-size:11px;font-weight:600}
+.badge-green{background:#EAF3DE;color:#3B6D11}.badge-purple{background:#EEEDFE;color:#3C3489}
+.badge-red{background:#FCEBEB;color:#A32D2D}.badge-amber{background:#FAEEDA;color:#854F0B}
+.badge-blue{background:#E6F1FB;color:#0C447C}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chore-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f5f5f5}
+.chore-row:last-child{border-bottom:none}
+.btn{padding:7px 14px;border:1.5px solid #e0e0e0;border-radius:10px;background:#fff;cursor:pointer;font-size:12px;color:#333;transition:all .15s}
+.btn:hover{background:#f5f5f5}
+.btn-sm{padding:4px 9px;font-size:11px}
+.btn-green{border-color:#1D9E75;color:#0F6E56;background:#EAF3DE}.btn-green:hover{background:#9FE1CB}
+.btn-red{border-color:#E24B4A;color:#A32D2D;background:#FCEBEB}
+.btn-amber{border-color:#BA7517;color:#854F0B;background:#FAEEDA}
+.btn-blue{border-color:#185FA5;color:#0C447C;background:#E6F1FB}.btn-blue:hover{background:#B5D4F4}
+.btn-purple{border-color:#534AB7;color:#3C3489;background:#EEEDFE}.btn-purple:hover{background:#CECBF6}
+.btn-danger{border-color:#E24B4A;color:#fff;background:#E24B4A}.btn-danger:hover{background:#A32D2D}
+input[type=text],input[type=number],input[type=password],select,textarea{padding:0 10px;border:1.5px solid #e0e0e0;border-radius:10px;background:#fff;color:#333;font-size:13px;height:36px;font-family:inherit;outline:none;transition:border .2s}
+input:focus,select:focus,textarea:focus{border-color:#AFA9EC}
+textarea{height:auto;padding:8px 10px;resize:vertical}
+.input-row{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.section-title{font-size:15px;font-weight:600;color:#1a1a2e;margin-bottom:12px}
+.subsection-title{font-size:11px;font-weight:600;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+.divider{height:1px;background:#f0f0f0;margin:14px 0}
+.pin-overlay{background:#f8f7ff;border:1.5px solid #e0e0e0;border-radius:16px;padding:2rem;text-align:center;max-width:280px;margin:2rem auto}
+.pin-dots{display:flex;justify-content:center;gap:12px;margin:16px 0}
+.pin-dot{width:13px;height:13px;border-radius:50%;border:2px solid #e0e0e0;background:transparent}
+.pin-dot.filled{background:#534AB7;border-color:#534AB7}.pin-dot.error{background:#E24B4A;border-color:#E24B4A}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:200px;margin:0 auto}
+.num-btn{height:46px;border:1.5px solid #e0e0e0;border-radius:10px;background:#fff;cursor:pointer;font-size:17px;font-weight:500;color:#333;transition:all .15s}
+.num-btn:hover{background:#EEEDFE;color:#3C3489}.num-btn:active{transform:scale(0.95)}
+.lock-indicator{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#888;padding:4px 10px;border:1.5px solid #e0e0e0;border-radius:99px;background:#fff}
+.chore-picker{position:relative;flex:2}
+.chore-picker input{width:100%}
+.chore-dropdown{position:absolute;top:38px;left:0;right:0;background:#fff;border:1.5px solid #e0e0e0;border-radius:12px;z-index:50;max-height:240px;overflow-y:auto;display:none;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.chore-dropdown.open{display:block}
+.chore-group-label{font-size:10px;font-weight:600;color:#888;padding:8px 10px 3px;text-transform:uppercase;letter-spacing:.05em;border-top:1px solid #f5f5f5}
+.chore-group-label:first-child{border-top:none}
+.chore-option{padding:8px 10px;font-size:13px;color:#333;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.chore-option:hover{background:#f8f7ff}
+.chore-option.already-added{color:#bbb;cursor:default}.chore-option.already-added:hover{background:transparent}
+.progress-bar{background:#f0f0f0;border-radius:99px;height:8px;margin-top:5px}
+.two-col-pts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.pts-box{text-align:center;padding:8px;border-radius:12px;border:1.5px solid #f0f0f0}
+.pts-box .num{font-size:24px;font-weight:700}
+.pts-box .lbl{font-size:9px;color:#888;margin-top:2px}
+.goal-bar-wrap{background:#f0f0f0;border-radius:99px;height:11px;margin:6px 0}
+.goal-bar-fill{height:11px;border-radius:99px;transition:width .4s}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.day-col{border:1.5px solid #f0f0f0;border-radius:12px;padding:7px 5px;min-height:130px;background:#fafafa}
+.day-name{font-size:10px;font-weight:600;color:#888;text-align:center;margin-bottom:6px}
+.day-task{font-size:9px;border-radius:5px;padding:3px 4px;margin-bottom:3px;cursor:pointer;line-height:1.3}
+.day-task.responsibility{background:#FCEBEB;color:#A32D2D}
+.day-task.bonus{background:#EAF3DE;color:#3B6D11}
+.day-task.study-required{background:#E6F1FB;color:#0C447C}
+.day-task.study-bonus{background:#EEEDFE;color:#3C3489}
+.report-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #f5f5f5}
+.report-row:last-child{border-bottom:none}
+.approval-row{background:#f8f7ff;border-radius:12px;padding:12px;margin-bottom:10px;border:1.5px solid #f0f0f0}
+.diff-badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600}
+.diff-easy{background:#EAF3DE;color:#3B6D11}.diff-medium{background:#FAEEDA;color:#854F0B}.diff-hard{background:#FCEBEB;color:#A32D2D}
+.report-card-box{border-radius:16px;padding:16px;margin-bottom:12px}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}
+.stat-cell{text-align:center;padding:10px 4px;border-radius:12px;background:#fff;border:1.5px solid #f0f0f0}
+.stat-num{font-size:22px;font-weight:700}.stat-lbl{font-size:10px;color:#888;margin-top:2px}
+.pool-row{display:flex;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #f5f5f5}
+.pool-row:last-child{border-bottom:none}
+.section-header{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.section-icon{font-size:20px}
+.tag{display:inline-block;padding:2px 7px;border-radius:99px;font-size:9px;font-weight:600;margin-right:3px}
+.tag-resp{background:#FCEBEB;color:#A32D2D}.tag-bonus{background:#EAF3DE;color:#3B6D11}
+.tag-study-req{background:#E6F1FB;color:#0C447C}.tag-study-bonus{background:#EEEDFE;color:#3C3489}
+/* Settings */
+.settings-section{background:#f8f7ff;border-radius:12px;padding:14px;margin-bottom:12px;border:1.5px solid #f0f0f0}
+.participant-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0f0}
+.participant-row:last-child{border-bottom:none}
+.color-pick{display:flex;gap:6px;flex-wrap:wrap}
+.color-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s}
+.color-swatch.selected{border-color:#333;transform:scale(1.15)}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}.week-grid{grid-template-columns:repeat(7,1fr)}.tabs{gap:4px}.tab{padding:5px 8px;font-size:11px}}
+</style>
+</head>
+<body>
+
+<!-- ENTRY GATE -->
+<div id="entry-gate">
+  <div class="gate-box">
+    <div class="gate-logo">🚀</div>
+    <div class="gate-title">Let's Gooo!</div>
+    <div class="gate-sub">Family tracker — enter password to continue</div>
+    <div class="gate-dots" id="gate-dots">
+      <div class="gate-dot" id="gdot-0"></div>
+      <div class="gate-dot" id="gdot-1"></div>
+      <div class="gate-dot" id="gdot-2"></div>
+      <div class="gate-dot" id="gdot-3"></div>
+    </div>
+    <div class="gate-numpad">
+      <button class="gate-btn" onclick="gatePress('1')">1</button>
+      <button class="gate-btn" onclick="gatePress('2')">2</button>
+      <button class="gate-btn" onclick="gatePress('3')">3</button>
+      <button class="gate-btn" onclick="gatePress('4')">4</button>
+      <button class="gate-btn" onclick="gatePress('5')">5</button>
+      <button class="gate-btn" onclick="gatePress('6')">6</button>
+      <button class="gate-btn" onclick="gatePress('7')">7</button>
+      <button class="gate-btn" onclick="gatePress('8')">8</button>
+      <button class="gate-btn" onclick="gatePress('9')">9</button>
+      <button class="gate-btn" onclick="gatePress('')"></button>
+      <button class="gate-btn" onclick="gatePress('0')">0</button>
+      <button class="gate-btn" onclick="gatePress('⌫')">⌫</button>
+    </div>
+    <div class="gate-err" id="gate-err"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+<div class="topbar">
+  <div style="font-size:26px">🚀</div>
+  <div class="appname">Let's Gooo!</div>
+  <div style="font-size:12px;color:#534AB7;margin-left:4px">Family tracker</div>
+  <div id="lock-status" class="lock-indicator" style="margin-left:auto">🔒 Locked</div>
+</div>
+
+<div class="tabs" id="main-tabs">
+  <button class="tab active" onclick="showTab('dashboard')">🏠 Home</button>
+  <button class="tab" onclick="showTab('weekly')">📅 Weekly</button>
+  <button class="tab" onclick="showTab('pool')">✨ Pool</button>
+  <button class="tab" onclick="showTab('learning')">📚 Learning</button>
+  <button class="tab" onclick="showTab('goals')">🎯 Goals</button>
+  <button class="tab" onclick="showTab('reportcard')">📊 Report</button>
+  <button class="tab locked" onclick="requirePin('approvals')">✅ Approvals <span id="approval-badge" style="display:none;background:#E24B4A;color:#fff;border-radius:99px;padding:1px 6px;font-size:10px;margin-left:2px">0</span></button>
+  <button class="tab locked" onclick="requirePin('manage')">⚙️ Manage</button>
+  <button class="tab locked" onclick="requirePin('rewards')">🎁 Rewards</button>
+  <button class="tab locked" onclick="requirePin('settings')">🛠️ Settings</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="tab-dashboard" class="section active">
+  <div id="cotw-banner"></div>
+  <div id="double-day-banner"></div>
+  <div id="kids-grid" class="grid2" style="margin-bottom:12px"></div>
+  <div class="card"><div class="section-header"><span class="section-icon">📋</span><div class="section-title" style="margin:0">Today's tasks</div></div><div id="today-list"></div></div>
+  <div class="card">
+    <div class="section-header"><span class="section-icon">⚡</span><div class="section-title" style="margin:0">Quick: award bonus chore</div></div>
+    <div class="input-row"><select id="quick-kid" style="flex:1"></select><select id="quick-chore" style="flex:2"></select><button class="btn btn-green" onclick="awardBonusChore()">+ Award</button></div>
+  </div>
+  <div class="card" style="background:#f8f7ff;border-color:#f0f0f0">
+    <div style="font-size:11px;color:#888;margin-bottom:8px">💰 Point totals — <span id="current-month"></span></div>
+    <div id="reward-progress"></div>
+  </div>
+</div>
+
+<!-- WEEKLY -->
+<div id="tab-weekly" class="section">
+  <div class="card">
+    <div class="section-header"><span class="section-icon">📅</span><div class="section-title" style="margin:0">Weekly calendar</div><div style="margin-left:auto"><span class="tag tag-resp">resp</span><span class="tag tag-bonus">bonus</span><span class="tag tag-study-req">hw</span><span class="tag tag-study-bonus">learn</span></div></div>
+    <div class="week-grid" id="week-grid"></div>
+  </div>
+  <div class="card">
+    <div class="section-title">➕ Add recurring task</div>
+    <div class="input-row">
+      <select id="add-day-sel" style="flex:0 0 105px"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option></select>
+      <div class="chore-picker" id="cal-picker-wrap"><input type="text" id="cal-chore-input" placeholder="Type or pick a chore..." autocomplete="off" oninput="filterDropdown('cal')" onfocus="openDropdown('cal')" onblur="scheduleClose('cal')"><div class="chore-dropdown" id="cal-dropdown"></div></div>
+      <select id="cal-type-sel" style="flex:0 0 125px"><option value="responsibility">Responsibility</option><option value="bonus">Bonus</option><option value="study-required">Homework</option><option value="study-bonus">Learning bonus</option></select>
+      <button class="btn" onclick="addToCalendarFromPicker()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- POOL -->
+<div id="tab-pool" class="section">
+  <div class="card"><div class="section-header"><span class="section-icon">✨</span><div class="section-title" style="margin:0">Bonus chores up for grabs</div></div><div style="font-size:12px;color:#888;margin-bottom:12px">First one to do it gets the points! 🏆</div><div id="pool-list"></div></div>
+</div>
+
+<!-- LEARNING -->
+<div id="tab-learning" class="section">
+  <div class="card" style="border:2px solid #B5D4F4;background:linear-gradient(135deg,#E6F1FB,#EEEDFE)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div style="font-size:30px">🎓</div><div><div style="font-size:14px;font-weight:600;color:#0C447C">Submit a learning report</div><div style="font-size:11px;color:#185FA5">Book · TED talk · Documentary · Online lesson · Podcast…</div></div></div>
+    <div class="input-row" style="margin-bottom:8px"><select id="report-kid" style="flex:0 0 120px"></select><select id="report-type" style="flex:1" onchange="updateReportPts()"><option value="book">📖 Book</option><option value="ted">🎤 TED talk</option><option value="documentary">🎬 Documentary</option><option value="online-lesson">💻 Online lesson</option><option value="podcast">🎧 Podcast</option><option value="article">📰 Article</option><option value="other">🌟 Other</option></select></div>
+    <div class="input-row" style="margin-bottom:8px"><input type="text" id="report-title" placeholder="Title of book / talk / lesson..." style="flex:1"></div>
+    <div style="margin-bottom:10px"><textarea id="report-summary" placeholder="What did you learn? Write 2-3 sentences minimum..." rows="3" style="width:100%"></textarea></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><div style="font-size:12px;color:#0C447C;flex:1">Points: <strong id="report-pts-preview">30</strong> ⭐ (parent will approve)</div><input type="number" id="report-custom-pts" placeholder="Override pts" style="width:110px" min="1"></div>
+    <button class="btn btn-blue" onclick="submitReport()" style="width:100%">📤 Submit for approval</button>
+  </div>
+  <div class="card"><div class="section-header"><span class="section-icon">📖</span><div class="section-title" style="margin:0">Learning log</div></div><div id="learning-log"></div></div>
+</div>
+
+<!-- GOALS -->
+<div id="tab-goals" class="section">
+  <div class="card"><div class="section-header"><span class="section-icon">🎯</span><div class="section-title" style="margin:0">Savings goals</div></div><div style="font-size:12px;color:#888;margin-bottom:12px">Set a goal and watch the points roll in! 🚀</div><div id="goals-list"></div></div>
+  <div class="card"><div class="section-title">➕ Add a goal</div><div class="input-row"><select id="goal-kid" style="flex:0 0 115px"></select><input type="text" id="goal-name" placeholder="Goal name (e.g. new game 🎮)" style="flex:2"><input type="number" id="goal-pts" placeholder="pts needed" style="width:95px" min="1"><button class="btn btn-purple" onclick="addGoal()">+ Add</button></div></div>
+</div>
+
+<!-- REPORT CARD -->
+<div id="tab-reportcard" class="section">
+  <div class="card"><div class="section-header"><span class="section-icon">📊</span><div class="section-title" style="margin:0">Weekly report card</div></div><div id="report-card-content"></div></div>
+</div>
+
+<!-- APPROVALS -->
+<div id="tab-approvals" class="section">
+  <div id="approvals-pin-wall"></div>
+  <div id="approvals-content" style="display:none">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-amber btn-sm" onclick="lockTab('approvals')">🔒 Lock</button></div>
+    <div class="card"><div class="section-header"><span class="section-icon">✅</span><div class="section-title" style="margin:0">Pending learning reports</div></div><div id="pending-approvals"></div></div>
+  </div>
+</div>
+
+<!-- MANAGE -->
+<div id="tab-manage" class="section">
+  <div id="manage-pin-wall"></div>
+  <div id="manage-content" style="display:none">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-amber btn-sm" onclick="lockTab('manage')">🔒 Lock</button></div>
+    <div class="card">
+      <div class="section-title">➕ Add chore / study task</div>
+      <div class="input-row">
+        <div class="chore-picker" id="manage-picker-wrap"><input type="text" id="manage-chore-input" placeholder="Type or pick..." autocomplete="off" oninput="filterDropdown('manage')" onfocus="openDropdown('manage')" onblur="scheduleClose('manage')"><div class="chore-dropdown" id="manage-dropdown"></div></div>
+        <select id="new-chore-type" style="flex:0 0 125px" onchange="togglePtsInput()"><option value="responsibility">Responsibility</option><option value="bonus">Bonus chore</option><option value="study-required">Homework</option><option value="study-bonus">Learning bonus</option></select>
+        <select id="new-chore-diff" style="flex:0 0 85px" onchange="togglePtsInput()"><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>
+        <input type="number" id="new-chore-pts" placeholder="pts" style="width:60px" min="0" value="0">
+        <button class="btn btn-green" onclick="addChoreFromPicker()">+ Add</button>
+      </div>
+    </div>
+    <div class="card"><div class="subsection-title">🛡️ Responsibilities</div><div id="resp-list"></div></div>
+    <div class="card"><div class="subsection-title">⭐ Bonus chores</div><div id="bonus-list"></div></div>
+    <div class="card"><div class="subsection-title">📝 Homework (required)</div><div id="study-req-list"></div></div>
+    <div class="card"><div class="subsection-title">🌟 Learning bonus tasks</div><div id="study-bonus-list"></div></div>
+    <div class="card"><div class="section-title">⭐ Chore of the week</div><div class="input-row"><select id="cotw-chore-sel" style="flex:2"></select><input type="number" id="cotw-bonus-pts" style="width:90px" value="20" placeholder="bonus pts"><button class="btn" onclick="saveCOTW()">Set</button><button class="btn btn-red btn-sm" onclick="clearCOTW()">Clear</button></div><div style="font-size:11px;color:#888">Earns extra points on top of base this week.</div></div>
+    <div class="card">
+      <div class="section-title">🔥 Streak & bonus settings</div>
+      <div class="input-row"><div style="flex:1;font-size:13px">Streak bonus (every 7 days)</div><input type="number" id="streak-bonus-pts" style="width:75px"><span style="font-size:12px;color:#888">pts</span></div>
+      <div class="input-row"><div style="flex:1;font-size:13px">Double-points day</div><select id="double-day-sel" style="flex:1"><option value="">None</option><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option></select></div>
+      <button class="btn" onclick="saveStreakSettings()">Save streak settings</button>
+    </div>
+    <div class="card">
+      <div class="section-title">📚 Learning report point defaults</div>
+      <div id="report-pts-settings"></div>
+      <button class="btn" style="margin-top:10px" onclick="saveReportPts()">Save defaults</button>
+    </div>
+    <div class="card"><div class="section-title">🔐 Change parent PIN</div><div style="font-size:12px;color:#888;margin-bottom:10px">This is the PIN used to access Manage, Rewards, Settings, and Approvals.</div><div class="input-row"><input type="password" id="old-pin" placeholder="Current PIN" style="width:130px" maxlength="4"><input type="password" id="new-pin" placeholder="New 4-digit PIN" style="width:150px" maxlength="4"><button class="btn" onclick="changePin()">Update PIN</button></div><div id="pin-change-msg" style="font-size:12px;margin-top:5px"></div></div>
+  </div>
+</div>
+
+<!-- REWARDS -->
+<div id="tab-rewards" class="section">
+  <div id="rewards-pin-wall"></div>
+  <div id="rewards-content" style="display:none">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-amber btn-sm" onclick="lockTab('rewards')">🔒 Lock</button></div>
+    <div class="card">
+      <div class="section-header"><span class="section-icon">⚙️</span><div class="section-title" style="margin:0">Redemption settings</div></div>
+      <div class="input-row"><div style="flex:1;font-size:13px">📺 Screen time</div><input type="number" id="screen-rate" value="10" style="width:75px"><span style="font-size:12px;color:#888">pts = 1 hour</span></div>
+      <div class="input-row"><div style="flex:1;font-size:13px">💵 Money</div><input type="number" id="money-rate" value="20" style="width:75px"><span style="font-size:12px;color:#888">pts = $1</span></div>
+      <div class="input-row"><div style="flex:1;font-size:13px">❌ Penalty per miss</div><input type="number" id="penalty-pts" value="5" style="width:75px"><span style="font-size:12px;color:#888">pts lost</span></div>
+      <button class="btn" onclick="saveRates()">Save settings</button>
+    </div>
+    <div class="card"><div class="section-header"><span class="section-icon">🎁</span><div class="section-title" style="margin:0">Redeem points</div></div><div id="redeem-section"></div></div>
+    <div class="card"><div class="section-header"><span class="section-icon">🕓</span><div class="section-title" style="margin:0">Redemption history</div></div><div id="history-list"></div></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="tab-settings" class="section">
+  <div id="settings-pin-wall"></div>
+  <div id="settings-content" style="display:none">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-amber btn-sm" onclick="lockTab('settings')">🔒 Lock</button></div>
+
+    <div class="card">
+      <div class="section-header"><span class="section-icon">👥</span><div class="section-title" style="margin:0">Participants</div></div>
+      <div style="font-size:12px;color:#888;margin-bottom:14px">Edit names, colors, or add new participants. Each gets their own points tracker and card.</div>
+      <div id="participants-list"></div>
+      <div class="divider"></div>
+      <div class="section-title" style="font-size:13px">➕ Add participant</div>
+      <div class="input-row">
+        <input type="text" id="new-participant-name" placeholder="Name (e.g. Sam)" style="flex:1">
+        <select id="new-participant-theme" style="flex:1">
+          <option value="pink">🩷 Pink dragon</option>
+          <option value="gold">🧡 Golden lion</option>
+          <option value="blue">💙 Blue whale</option>
+          <option value="green">💚 Green turtle</option>
+          <option value="purple">💜 Purple owl</option>
+        </select>
+        <button class="btn btn-green" onclick="addParticipant()">+ Add</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-header"><span class="section-icon">🔑</span><div class="section-title" style="margin:0">Site access password</div></div>
+      <div style="font-size:12px;color:#888;margin-bottom:12px">This is the password shown on the entry screen when anyone opens the site.</div>
+      <div class="input-row">
+        <input type="password" id="site-pwd-old" placeholder="Current password" style="flex:1" maxlength="6">
+        <input type="password" id="site-pwd-new" placeholder="New password (4-6 digits)" style="flex:1" maxlength="6">
+        <button class="btn" onclick="changeSitePassword()">Update</button>
+      </div>
+      <div id="site-pwd-msg" style="font-size:12px;margin-top:5px"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-header"><span class="section-icon">📤</span><div class="section-title" style="margin:0">Export & backup</div></div>
+      <div style="font-size:12px;color:#888;margin-bottom:12px">Download all your data as a JSON file, or copy a share link.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-blue" onclick="exportData()">📥 Export data (JSON)</button>
+        <button class="btn" onclick="importDataPrompt()">📂 Import data</button>
+      </div>
+    </div>
+
+    <div class="card" style="border-color:#FCEBEB">
+      <div class="section-header"><span class="section-icon">⚠️</span><div class="section-title" style="margin:0;color:#A32D2D">Danger zone</div></div>
+      <div style="font-size:12px;color:#888;margin-bottom:12px">These actions cannot be undone.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-danger btn-sm" onclick="resetAllPoints()">🔄 Reset all points</button>
+        <button class="btn btn-danger btn-sm" onclick="resetEverything()">💥 Reset everything</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end #app -->
+
+<script>
+// ─── CONSTANTS ───────────────────────────────────────────────
+const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const DIFF_PTS={easy:10,medium:20,hard:35};
+const DEFAULT_REPORT_PTS={book:40,ted:25,documentary:30,'online-lesson':35,podcast:20,article:15,other:20};
+const SITE_PASSWORD='1216';
+
+const THEME_CONFIG={
+  pink:{label:'🐉 Dra',cardClass:'kid-card-dra',barColor:'#D4537E',learnColor:'#534AB7'},
+  gold:{label:'🦁 Lio',cardClass:'kid-card-lio',barColor:'#EF9F27',learnColor:'#3B6D11'},
+  blue:{label:'🐳',cardClass:'',barColor:'#378ADD',learnColor:'#0C447C'},
+  green:{label:'🐢',cardClass:'',barColor:'#1D9E75',learnColor:'#3B6D11'},
+  purple:{label:'🦉',cardClass:'',barColor:'#7F77DD',learnColor:'#534AB7'},
+};
+
+const CARD_STYLES={
+  pink:{bg:'linear-gradient(135deg,#FBEAF0,#EEEDFE)',border:'2px solid #ED93B1',ptsBg1:'#FBEAF0',ptsBorder1:'#F4C0D1',ptsColor1:'#993556',ptsBg2:'#EEEDFE',ptsBorder2:'#CECBF6',ptsColor2:'#3C3489',badgeClass1:'badge-purple',badgeClass2:'badge-blue'},
+  gold:{bg:'linear-gradient(135deg,#FAEEDA,#EAF3DE)',border:'2px solid #EF9F27',ptsBg1:'#FAEEDA',ptsBorder1:'#FAC775',ptsColor1:'#854F0B',ptsBg2:'#EAF3DE',ptsBorder2:'#C0DD97',ptsColor2:'#3B6D11',badgeClass1:'badge-amber',badgeClass2:'badge-blue'},
+  blue:{bg:'linear-gradient(135deg,#E6F1FB,#EAF3DE)',border:'2px solid #85B7EB',ptsBg1:'#E6F1FB',ptsBorder1:'#B5D4F4',ptsColor1:'#0C447C',ptsBg2:'#EAF3DE',ptsBorder2:'#C0DD97',ptsColor2:'#3B6D11',badgeClass1:'badge-blue',badgeClass2:'badge-green'},
+  green:{bg:'linear-gradient(135deg,#EAF3DE,#E1F5EE)',border:'2px solid #97C459',ptsBg1:'#EAF3DE',ptsBorder1:'#C0DD97',ptsColor1:'#3B6D11',ptsBg2:'#E1F5EE',ptsBorder2:'#9FE1CB',ptsColor2:'#085041',badgeClass1:'badge-green',badgeClass2:'badge-teal'},
+  purple:{bg:'linear-gradient(135deg,#EEEDFE,#FBEAF0)',border:'2px solid #7F77DD',ptsBg1:'#EEEDFE',ptsBorder1:'#CECBF6',ptsColor1:'#3C3489',ptsBg2:'#FBEAF0',ptsBorder2:'#F4C0D1',ptsColor2:'#993556',badgeClass1:'badge-purple',badgeClass2:'badge-red'},
+};
+
+const CHORE_ICONS={
+  'Make bed':'🛏️','Keep room tidy':'🧹','Put dirty clothes in hamper':'👕','Change bed sheets':'🛏️','Organize closet':'👚','Vacuum bedroom':'🌀','Tidy desk and study area':'🖊️','Open window to air out room':'🪟',
+  'Shower after sport practice':'🚿','Clean bathroom sink & mirror':'🪥','Scrub toilet':'🚽','Wipe down shower or tub':'🫧','Take out bathroom trash':'🗑️','Replace toilet roll':'🧻','Refill soap dispensers':'🧴','Clean bathroom floor':'🫧',
+  'Clear the table after meals':'🍽️','Wash dishes by hand':'🍳','Load dishwasher':'🫙','Empty dishwasher':'✨','Wipe down counters':'🧽','Sweep kitchen floor':'🧹','Take out kitchen trash':'🗑️','Pack own school lunch':'🥪','Wipe inside microwave':'📦','Clean fridge shelves':'🧊','Refill water filter':'💧','Set the table for dinner':'🍽️','Prep a simple snack or meal':'🥗','Put groceries away':'🛒',
+  'Do a load of laundry':'🫧','Fold own laundry':'👕','Put away own laundry':'🗄️','Fold family laundry':'🧺','Iron clothes':'👔','Sort laundry by color':'🔴','Hang clothes to dry':'🌬️',
+  'Vacuum living room':'🌀','Dust furniture':'✨','Mop floors':'🪣','Tidy common areas':'🏠','Take trash bins to curb':'🗑️','Bring bins back in':'♻️','Organize pantry or cupboards':'🥫','Wipe light switches & door handles':'💡','Clean windows':'🪟','Sweep porch or entry':'🧹','Declutter a shared space':'📦','Vacuum stairs':'🌀','Clean mirrors':'🪟',
+  'Water plants':'🌿','Mow lawn':'🌱','Rake leaves':'🍂','Feed pets':'🐾','Walk the dog':'🦮','Clean pet bowls':'🐶','Clean pet cage or litter box':'🐱','Shovel snow':'❄️','Pull weeds':'🌾','Sweep driveway':'🧹','Wash the car':'🚗','Water outdoor plants':'🌺','Pick up yard litter':'🍃',
+  'Complete daily homework':'📝','Study for upcoming test':'📚','Practice instrument':'🎵','Review class notes':'📖','Reading assignment':'📖','Prepare school bag for next day':'🎒','Organize school binder or folder':'📁','Complete a practice worksheet':'✏️',
+  'Watch & report on TED talk':'🎤','Read extra book chapter':'📖','Complete online lesson':'💻','Write book summary':'✍️','Research a topic of interest':'🔬','Listen to educational podcast':'🎧','Learn a new skill online':'💡','Write a short story or journal':'📓','Do a science experiment':'🧪','Learn 10 words in another language':'🌍','Watch a nature or history documentary':'🎬','Draw or sketch something from observation':'🎨','Read a newspaper article and discuss':'📰','Practice coding or logic puzzles':'🖥️','Learn about a historical event':'🏛️',
+};
+
+const TYPE_COLORS={
+  responsibility:{bg:'#FCEBEB',border:'#F7C1C1',text:'#A32D2D'},
+  bonus:{bg:'#EAF3DE',border:'#C0DD97',text:'#3B6D11'},
+  'study-required':{bg:'#E6F1FB',border:'#B5D4F4',text:'#0C447C'},
+  'study-bonus':{bg:'#EEEDFE',border:'#CECBF6',text:'#3C3489'},
+};
+
+const CHORE_SUGGESTIONS=[
+  {group:'🛏️ Bedroom & personal',items:[{name:'Make bed',type:'responsibility',diff:'easy'},{name:'Keep room tidy',type:'responsibility',diff:'easy'},{name:'Put dirty clothes in hamper',type:'responsibility',diff:'easy'},{name:'Tidy desk and study area',type:'responsibility',diff:'easy'},{name:'Open window to air out room',type:'responsibility',diff:'easy'},{name:'Change bed sheets',type:'bonus',diff:'medium'},{name:'Organize closet',type:'bonus',diff:'medium'},{name:'Vacuum bedroom',type:'bonus',diff:'easy'}]},
+  {group:'🚿 Bathroom',items:[{name:'Shower after sport practice',type:'responsibility',diff:'easy'},{name:'Clean bathroom sink & mirror',type:'bonus',diff:'easy'},{name:'Scrub toilet',type:'bonus',diff:'medium'},{name:'Wipe down shower or tub',type:'bonus',diff:'medium'},{name:'Take out bathroom trash',type:'bonus',diff:'easy'},{name:'Replace toilet roll',type:'responsibility',diff:'easy'},{name:'Refill soap dispensers',type:'bonus',diff:'easy'},{name:'Clean bathroom floor',type:'bonus',diff:'medium'}]},
+  {group:'🍽️ Kitchen',items:[{name:'Clear the table after meals',type:'responsibility',diff:'easy'},{name:'Set the table for dinner',type:'responsibility',diff:'easy'},{name:'Wash dishes by hand',type:'bonus',diff:'medium'},{name:'Load dishwasher',type:'bonus',diff:'easy'},{name:'Empty dishwasher',type:'bonus',diff:'easy'},{name:'Wipe down counters',type:'bonus',diff:'easy'},{name:'Sweep kitchen floor',type:'bonus',diff:'easy'},{name:'Take out kitchen trash',type:'responsibility',diff:'easy'},{name:'Pack own school lunch',type:'responsibility',diff:'easy'},{name:'Wipe inside microwave',type:'bonus',diff:'easy'},{name:'Clean fridge shelves',type:'bonus',diff:'hard'},{name:'Refill water filter',type:'responsibility',diff:'easy'},{name:'Put groceries away',type:'bonus',diff:'easy'},{name:'Prep a simple snack or meal',type:'bonus',diff:'medium'}]},
+  {group:'🧺 Laundry',items:[{name:'Do a load of laundry',type:'bonus',diff:'medium'},{name:'Sort laundry by color',type:'bonus',diff:'easy'},{name:'Fold own laundry',type:'responsibility',diff:'easy'},{name:'Put away own laundry',type:'responsibility',diff:'easy'},{name:'Fold family laundry',type:'bonus',diff:'medium'},{name:'Hang clothes to dry',type:'bonus',diff:'easy'},{name:'Iron clothes',type:'bonus',diff:'hard'}]},
+  {group:'🏠 House & common areas',items:[{name:'Vacuum living room',type:'bonus',diff:'medium'},{name:'Dust furniture',type:'bonus',diff:'medium'},{name:'Mop floors',type:'bonus',diff:'hard'},{name:'Tidy common areas',type:'bonus',diff:'easy'},{name:'Take trash bins to curb',type:'responsibility',diff:'easy'},{name:'Bring bins back in',type:'responsibility',diff:'easy'},{name:'Organize pantry or cupboards',type:'bonus',diff:'medium'},{name:'Wipe light switches & door handles',type:'bonus',diff:'easy'},{name:'Clean windows',type:'bonus',diff:'medium'},{name:'Sweep porch or entry',type:'bonus',diff:'easy'},{name:'Declutter a shared space',type:'bonus',diff:'medium'},{name:'Vacuum stairs',type:'bonus',diff:'medium'},{name:'Clean mirrors',type:'bonus',diff:'easy'}]},
+  {group:'🌿 Outdoors & pets',items:[{name:'Water plants',type:'bonus',diff:'easy'},{name:'Water outdoor plants',type:'bonus',diff:'easy'},{name:'Mow lawn',type:'bonus',diff:'hard'},{name:'Rake leaves',type:'bonus',diff:'hard'},{name:'Feed pets',type:'responsibility',diff:'easy'},{name:'Walk the dog',type:'bonus',diff:'medium'},{name:'Clean pet bowls',type:'bonus',diff:'easy'},{name:'Clean pet cage or litter box',type:'bonus',diff:'medium'},{name:'Shovel snow',type:'bonus',diff:'hard'},{name:'Pull weeds',type:'bonus',diff:'hard'},{name:'Sweep driveway',type:'bonus',diff:'medium'},{name:'Wash the car',type:'bonus',diff:'hard'},{name:'Pick up yard litter',type:'bonus',diff:'easy'}]},
+  {group:'📝 Homework & study',items:[{name:'Complete daily homework',type:'study-required',diff:'medium'},{name:'Study for upcoming test',type:'study-required',diff:'medium'},{name:'Practice instrument',type:'study-required',diff:'medium'},{name:'Review class notes',type:'study-required',diff:'easy'},{name:'Prepare school bag for next day',type:'responsibility',diff:'easy'},{name:'Organize school binder or folder',type:'bonus',diff:'easy'},{name:'Complete a practice worksheet',type:'study-required',diff:'medium'}]},
+  {group:'🌟 Learning bonus',items:[{name:'Watch & report on TED talk',type:'study-bonus',diff:'medium'},{name:'Read extra book chapter',type:'study-bonus',diff:'easy'},{name:'Complete online lesson',type:'study-bonus',diff:'medium'},{name:'Write book summary',type:'study-bonus',diff:'medium'},{name:'Research a topic of interest',type:'study-bonus',diff:'medium'},{name:'Listen to educational podcast',type:'study-bonus',diff:'easy'},{name:'Learn a new skill online',type:'study-bonus',diff:'medium'},{name:'Write a short story or journal',type:'study-bonus',diff:'medium'},{name:'Do a science experiment',type:'study-bonus',diff:'hard'},{name:'Learn 10 words in another language',type:'study-bonus',diff:'easy'},{name:'Watch a nature or history documentary',type:'study-bonus',diff:'easy'},{name:'Draw or sketch something from observation',type:'study-bonus',diff:'easy'},{name:'Read a newspaper article and discuss',type:'study-bonus',diff:'medium'},{name:'Practice coding or logic puzzles',type:'study-bonus',diff:'medium'},{name:'Learn about a historical event',type:'study-bonus',diff:'medium'}]},
+];
+
+// ─── STATE ───────────────────────────────────────────────────
+let state={
+  sitePassword:'1216',
+  participants:{
+    k1:{id:'k1',name:'Dra',theme:'pink',chorePoints:0,learnPoints:0,bonusDone:0,learnDone:0,missed:0,streak:0,lastStreakDate:'',weeklyDone:0,weeklyMissed:0,weeklyLearn:0},
+    k2:{id:'k2',name:'Lio',theme:'gold',chorePoints:0,learnPoints:0,bonusDone:0,learnDone:0,missed:0,streak:0,lastStreakDate:'',weeklyDone:0,weeklyMissed:0,weeklyLearn:0}
+  },
+  participantOrder:['k1','k2'],
+  chores:[
+    {id:1,name:'Make bed',type:'responsibility',pts:0,diff:'easy'},
+    {id:2,name:'Keep room tidy',type:'responsibility',pts:0,diff:'easy'},
+    {id:3,name:'Shower after sport practice',type:'responsibility',pts:0,diff:'easy'},
+    {id:4,name:'Take trash bins to curb',type:'responsibility',pts:0,diff:'easy'},
+    {id:5,name:'Complete daily homework',type:'study-required',pts:0,diff:'medium'},
+    {id:6,name:'Water plants',type:'bonus',pts:10,diff:'easy'},
+    {id:7,name:'Empty dishwasher',type:'bonus',pts:10,diff:'easy'},
+    {id:8,name:'Do a load of laundry',type:'bonus',pts:20,diff:'medium'},
+    {id:9,name:'Vacuum living room',type:'bonus',pts:35,diff:'hard'},
+    {id:10,name:'Watch & report on TED talk',type:'study-bonus',pts:20,diff:'medium'},
+    {id:11,name:'Read extra book chapter',type:'study-bonus',pts:10,diff:'easy'},
+  ],
+  calendar:{Monday:[1,2,5],Tuesday:[1,3,5],Wednesday:[1,2,5],Thursday:[1,3,5],Friday:[1,2,4,5],Saturday:[2],Sunday:[2]},
+  rates:{screen:10,money:20,penalty:5},
+  reportPts:{...DEFAULT_REPORT_PTS},
+  learningLog:[],pendingReports:[],goals:[],history:[],
+  cotw:{choreId:null,bonusPts:20},
+  streakSettings:{bonusPts:25,doubleDay:''},
+  pin:'1234',nextId:12,nextParticipantId:3
+};
+
+let unlocked={manage:false,rewards:false,approvals:false,settings:false};
+let pinEntry={target:null,digits:[]};
+let dropdownClose={};
+
+// ─── PERSISTENCE ─────────────────────────────────────────────
+function save(){try{localStorage.setItem('letsgooo_v1',JSON.stringify(state))}catch(e){}}
+function load(){
+  try{
+    const d=localStorage.getItem('letsgooo_v1');
+    if(!d)return;
+    const s=JSON.parse(d);
+    if(!s.participants)return;
+    if(!s.participantOrder)s.participantOrder=Object.keys(s.participants);
+    if(!s.sitePassword)s.sitePassword='1216';
+    Object.keys(s.participants).forEach(k=>{
+      const p=s.participants[k];
+      ['chorePoints','learnPoints','streak','weeklyDone','weeklyMissed','weeklyLearn','learnDone','bonusDone','missed'].forEach(f=>{if(p[f]===undefined)p[f]=0;});
+      if(!p.theme)p.theme='pink';
+    });
+    if(!s.learningLog)s.learningLog=[];if(!s.pendingReports)s.pendingReports=[];
+    if(!s.reportPts)s.reportPts={...DEFAULT_REPORT_PTS};if(!s.goals)s.goals=[];
+    if(!s.cotw)s.cotw={choreId:null,bonusPts:20};if(!s.streakSettings)s.streakSettings={bonusPts:25,doubleDay:''};
+    if(!s.nextParticipantId)s.nextParticipantId=3;
+    state=s;
+  }catch(e){}
+}
+load();
+
+// ─── HELPERS ─────────────────────────────────────────────────
+function totalPts(k){const p=state.participants[k];return(p.chorePoints||0)+(p.learnPoints||0);}
+function choreIcon(name){return CHORE_ICONS[name]||'✅';}
+function isDoubleDay(){if(!state.streakSettings.doubleDay)return false;const d=new Date().getDay();return DAYS[d===0?6:d-1]===state.streakSettings.doubleDay;}
+function getChore(id){return state.chores.find(c=>c.id===id);}
+function addedNames(){return state.chores.map(c=>c.name.toLowerCase());}
+function pIds(){return state.participantOrder.filter(id=>state.participants[id]);}
+
+function kidSVG(theme,size){
+  if(theme==='pink')return`<svg width="${size}" height="${size}" viewBox="0 0 54 54"><circle cx="27" cy="27" r="27" fill="#FBEAF0"/><ellipse cx="27" cy="34" rx="13" ry="10" fill="#D4537E"/><ellipse cx="27" cy="22" rx="11" ry="10" fill="#ED93B1"/><polygon points="20,14 17,6 23,13" fill="#D4537E"/><polygon points="34,14 37,6 31,13" fill="#D4537E"/><ellipse cx="23" cy="21" rx="2.5" ry="2.5" fill="#fff"/><ellipse cx="31" cy="21" rx="2.5" ry="2.5" fill="#fff"/><circle cx="23.5" cy="21.5" r="1.3" fill="#3C3489"/><circle cx="31.5" cy="21.5" r="1.3" fill="#3C3489"/><circle cx="24.2" cy="20.8" r=".5" fill="#fff"/><circle cx="32.2" cy="20.8" r=".5" fill="#fff"/><ellipse cx="20" cy="25" rx="3" ry="1.5" fill="#F4C0D1" opacity=".7"/><ellipse cx="34" cy="25" rx="3" ry="1.5" fill="#F4C0D1" opacity=".7"/><path d="M23 27 Q27 30 31 27" stroke="#993556" stroke-width="1.2" fill="none" stroke-linecap="round"/><path d="M14 30 Q8 24 12 18 Q16 28 20 30Z" fill="#ED93B1"/><path d="M40 30 Q46 24 42 18 Q38 28 34 30Z" fill="#ED93B1"/></svg>`;
+  if(theme==='gold')return`<svg width="${size}" height="${size}" viewBox="0 0 54 54"><circle cx="27" cy="27" r="27" fill="#FAEEDA"/><circle cx="27" cy="26" r="16" fill="#EF9F27"/><circle cx="15" cy="22" r="7" fill="#EF9F27"/><circle cx="39" cy="22" r="7" fill="#EF9F27"/><circle cx="12" cy="30" r="6" fill="#BA7517"/><circle cx="42" cy="30" r="6" fill="#BA7517"/><circle cx="18" cy="16" r="6" fill="#BA7517"/><circle cx="36" cy="16" r="6" fill="#BA7517"/><circle cx="27" cy="13" r="6" fill="#EF9F27"/><circle cx="27" cy="27" r="13" fill="#FAC775"/><circle cx="15" cy="17" r="4" fill="#FAC775"/><circle cx="39" cy="17" r="4" fill="#FAC775"/><circle cx="15" cy="17" r="2" fill="#F4C0D1"/><circle cx="39" cy="17" r="2" fill="#F4C0D1"/><ellipse cx="22.5" cy="24" rx="2.8" ry="2.8" fill="#fff"/><ellipse cx="31.5" cy="24" rx="2.8" ry="2.8" fill="#fff"/><circle cx="23" cy="24.5" r="1.5" fill="#3C3489"/><circle cx="32" cy="24.5" r="1.5" fill="#3C3489"/><ellipse cx="19" cy="28" rx="3" ry="1.8" fill="#F5C4B3" opacity=".8"/><ellipse cx="35" cy="28" rx="3" ry="1.8" fill="#F5C4B3" opacity=".8"/><ellipse cx="27" cy="29" rx="4" ry="3" fill="#F0997B"/><circle cx="25.5" cy="29.5" r=".8" fill="#993C1D"/><circle cx="28.5" cy="29.5" r=".8" fill="#993C1D"/><path d="M22 32 Q27 36 32 32" stroke="#993C1D" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg>`;
+  const themeEmojis={blue:'🐳',green:'🐢',purple:'🦉'};
+  return`<div style="width:${size}px;height:${size}px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:${size*0.45}px">${themeEmojis[theme]||'😊'}</div>`;
+}
+
+// ─── ENTRY GATE ───────────────────────────────────────────────
+let gateDigits=[];
+function gatePress(v){
+  if(v==='')return;
+  if(v==='⌫'){gateDigits.pop();}else{if(gateDigits.length>=6)return;gateDigits.push(v);}
+  updateGateDots();
+  if(gateDigits.length>0&&gateDigits.length===state.sitePassword.length){setTimeout(checkGate,120);}
+}
+function updateGateDots(err=false){
+  const pwd=state.sitePassword;
+  for(let i=0;i<4;i++){const d=document.getElementById('gdot-'+i);if(!d)continue;d.className='gate-dot'+(err?'error':gateDigits[i]?' filled':'');}
+}
+function checkGate(){
+  if(gateDigits.join('')===state.sitePassword){
+    document.getElementById('entry-gate').style.display='none';document.getElementById('app').style.display='block';render();
+  } else {
+    for(let i=0;i<4;i++){const d=document.getElementById('gdot-'+i);if(d)d.className='gate-dot error';}
+    document.getElementById('gate-err').textContent='Wrong password, try again.';
+    setTimeout(()=>{gateDigits=[];updateGateDots();document.getElementById('gate-err').textContent='';},1400);
+  }
+}
+
+// ─── TAB ROUTING ─────────────────────────────────────────────
+function showTab(t){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  if(event&&event.target)event.target.classList.add('active');
+  render();
+}
+function requirePin(target){
+  if(unlocked[target]){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    if(event&&event.target)event.target.classList.add('active');
+    document.getElementById('tab-'+target).classList.add('active');
+    render();return;
+  }
+  pinEntry={target,digits:[]};
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  if(event&&event.target)event.target.classList.add('active');
+  document.getElementById('tab-'+target).classList.add('active');
+  renderPinWall(target);
+}
+function renderPinWall(target){
+  const wall=document.getElementById(target+'-pin-wall');const content=document.getElementById(target+'-content');
+  if(!wall)return;content.style.display='none';
+  wall.innerHTML=`<div class="pin-overlay"><div style="font-size:28px;margin-bottom:8px">🔐</div><div style="font-size:15px;font-weight:600;margin-bottom:4px">Parent access required</div><div style="font-size:12px;color:#888">Enter your 4-digit parent PIN</div><div class="pin-dots" id="dots-${target}">${[0,1,2,3].map(i=>'<div class="pin-dot" id="dot-'+target+'-'+i+'"></div>').join('')}</div><div class="numpad">${[1,2,3,4,5,6,7,8,9,'','0','⌫'].map(n=>`<button class="num-btn" onclick="pinPress('${target}','${n}')">${n}</button>`).join('')}</div><div id="pin-err-${target}" style="font-size:12px;color:#E24B4A;margin-top:12px;min-height:18px"></div></div>`;
+}
+function pinPress(t,v){if(v==='')return;if(v==='⌫'){pinEntry.digits.pop();}else{if(pinEntry.digits.length>=4)return;pinEntry.digits.push(v);}updateDots(t);if(pinEntry.digits.length===4)setTimeout(()=>checkPin(t),120);}
+function updateDots(t,err=false){for(let i=0;i<4;i++){const d=document.getElementById('dot-'+t+'-'+i);if(!d)continue;d.className='pin-dot'+(err?' error':pinEntry.digits[i]?' filled':'');}}
+function checkPin(t){
+  if(pinEntry.digits.join('')===state.pin){unlocked[t]=true;document.getElementById(t+'-pin-wall').innerHTML='';document.getElementById(t+'-content').style.display='block';updateLockStatus();render();}
+  else{updateDots(t,true);const e=document.getElementById('pin-err-'+t);if(e)e.textContent='Incorrect PIN. Try again.';setTimeout(()=>{pinEntry.digits=[];updateDots(t);if(e)e.textContent='';},1400);}
+}
+function lockTab(tab){unlocked[tab]=false;updateLockStatus();showTab('dashboard');}
+function updateLockStatus(){
+  const ls=document.getElementById('lock-status');const any=Object.values(unlocked).some(v=>v);
+  if(ls){ls.textContent=any?'🔓 Unlocked':'🔒 Locked';ls.style.color=any?'#0F6E56':'#888';}
+  const ab=document.getElementById('approval-badge');if(ab){const c=state.pendingReports.length;ab.textContent=c;ab.style.display=c>0?'inline':'none';}
+}
+
+// ─── CHORE DROPDOWN ───────────────────────────────────────────
+function buildDropdownHTML(filter,ctx){
+  const f=(filter||'').toLowerCase().trim();const added=addedNames();let html='';let any=false;
+  CHORE_SUGGESTIONS.forEach(g=>{
+    const items=g.items.filter(i=>!f||i.name.toLowerCase().includes(f));if(!items.length)return;any=true;
+    html+=`<div class="chore-group-label">${g.group}</div>`;
+    items.forEach(i=>{const isAdded=added.includes(i.name.toLowerCase());html+=`<div class="chore-option${isAdded?' already-added':''}" onmousedown="pickSuggestion('${ctx}',${JSON.stringify(i.name)},${JSON.stringify(i.type)},${JSON.stringify(i.diff||'easy')})">${choreIcon(i.name)} ${i.name}${isAdded?' ✓':''}</div>`;});
+  });
+  if(!any&&f)html+=`<div class="chore-option" style="font-style:italic;color:#888">Use "${filter}" as custom chore</div>`;
+  return html||'<div style="padding:10px;font-size:12px;color:#888">No matches</div>';
+}
+function openDropdown(ctx){const dd=document.getElementById(ctx+'-dropdown');const inp=document.getElementById(ctx+'-chore-input');if(!dd||!inp)return;dd.innerHTML=buildDropdownHTML(inp.value,ctx);dd.classList.add('open');}
+function filterDropdown(ctx){const dd=document.getElementById(ctx+'-dropdown');const inp=document.getElementById(ctx+'-chore-input');if(!dd||!inp)return;dd.innerHTML=buildDropdownHTML(inp.value,ctx);dd.classList.add('open');}
+function scheduleClose(ctx){dropdownClose[ctx]=setTimeout(()=>{const dd=document.getElementById(ctx+'-dropdown');if(dd)dd.classList.remove('open');},200);}
+function pickSuggestion(ctx,name,type,diff){
+  clearTimeout(dropdownClose[ctx]);
+  const inp=document.getElementById(ctx+'-chore-input');if(inp)inp.value=name;
+  const dd=document.getElementById(ctx+'-dropdown');if(dd)dd.classList.remove('open');
+  if(ctx==='manage'){const s=document.getElementById('new-chore-type');if(s)s.value=type;const ds=document.getElementById('new-chore-diff');if(ds)ds.value=diff||'easy';togglePtsInput();}
+  if(ctx==='cal'){const s=document.getElementById('cal-type-sel');if(s)s.value=type;}
+}
+function togglePtsInput(){const t=document.getElementById('new-chore-type').value;const d=document.getElementById('new-chore-diff').value;const p=document.getElementById('new-chore-pts');if(p)p.value=(t==='responsibility'||t==='study-required')?0:DIFF_PTS[d||'easy'];}
+
+// ─── CHORE ACTIONS ────────────────────────────────────────────
+function addChoreFromPicker(){
+  const name=(document.getElementById('manage-chore-input').value||'').trim();const type=document.getElementById('new-chore-type').value;const diff=document.getElementById('new-chore-diff').value;const pts=parseInt(document.getElementById('new-chore-pts').value)||0;
+  if(!name)return;if(state.chores.find(c=>c.name.toLowerCase()===name.toLowerCase())){alert('"'+name+'" already exists.');return;}
+  state.chores.push({id:state.nextId++,name,type,pts,diff});document.getElementById('manage-chore-input').value='';save();render();
+}
+function addToCalendarFromPicker(){
+  const day=document.getElementById('add-day-sel').value;const name=(document.getElementById('cal-chore-input').value||'').trim();const type=document.getElementById('cal-type-sel').value;
+  if(!name)return;let chore=state.chores.find(c=>c.name.toLowerCase()===name.toLowerCase());
+  if(!chore){chore={id:state.nextId++,name,type,pts:DIFF_PTS.easy,diff:'easy'};state.chores.push(chore);}
+  if(!state.calendar[day])state.calendar[day]=[];if(!state.calendar[day].includes(chore.id))state.calendar[day].push(chore.id);
+  document.getElementById('cal-chore-input').value='';save();render();
+}
+function deleteChore(id){state.chores=state.chores.filter(c=>c.id!==id);Object.keys(state.calendar).forEach(d=>{state.calendar[d]=(state.calendar[d]||[]).filter(i=>i!==id);});save();render();}
+function removeFromCalendar(day,id){if(!state.calendar[day])return;state.calendar[day]=state.calendar[day].filter(i=>i!==id);save();render();}
+
+function updateStreak(kid){
+  const today=new Date().toDateString();const p=state.participants[kid];if(!p)return;if(p.lastStreakDate===today)return;p.streak=(p.streak||0)+1;p.lastStreakDate=today;
+  if(p.streak>0&&p.streak%7===0){const bonus=state.streakSettings.bonusPts||25;p.chorePoints=(p.chorePoints||0)+bonus;setTimeout(()=>alert('🔥 '+p.name+' hit a '+p.streak+'-day streak! +'+bonus+' bonus points! 🎉'),200);}
+}
+function markDone(kid,choreId,type){
+  const c=getChore(choreId);const p=state.participants[kid];if(!c||!p)return;
+  const isBonus=type==='bonus'||type==='study-bonus';const isStudy=type==='study-required'||type==='study-bonus';const double=isDoubleDay();const isCOTW=state.cotw.choreId===choreId;
+  if(isBonus){let pts=c.pts*(double?2:1)+(isCOTW?state.cotw.bonusPts:0);if(isStudy){p.learnPoints=(p.learnPoints||0)+pts;p.learnDone=(p.learnDone||0)+1;p.weeklyLearn=(p.weeklyLearn||0)+1;}else{p.chorePoints=(p.chorePoints||0)+pts;p.bonusDone=(p.bonusDone||0)+1;}p.weeklyDone=(p.weeklyDone||0)+1;updateStreak(kid);}
+  else{p.chorePoints=(p.chorePoints||0)-state.rates.penalty;p.missed=(p.missed||0)+1;p.weeklyMissed=(p.weeklyMissed||0)+1;p.streak=0;}
+  save();render();
+}
+function awardBonusChore(){
+  const kid=document.getElementById('quick-kid').value;const id=parseInt(document.getElementById('quick-chore').value);const c=getChore(id);const p=state.participants[kid];if(!c||!p)return;
+  const pts=c.pts*(isDoubleDay()?2:1);p.chorePoints=(p.chorePoints||0)+pts;p.bonusDone=(p.bonusDone||0)+1;updateStreak(kid);save();render();
+  const btn=event.target;btn.textContent='Awarded! 🎉';setTimeout(()=>btn.textContent='+ Award',1600);
+}
+function claimPoolChore(kid,id){
+  const c=getChore(id);const p=state.participants[kid];if(!c||!p)return;const isCOTW=state.cotw.choreId===id;const pts=c.pts*(isDoubleDay()?2:1)+(isCOTW?state.cotw.bonusPts:0);p.chorePoints=(p.chorePoints||0)+pts;p.bonusDone=(p.bonusDone||0)+1;updateStreak(kid);save();render();alert('🎉 '+p.name+' earned +'+pts+' pts for: '+c.name);
+}
+
+// ─── LEARNING ────────────────────────────────────────────────
+function updateReportPts(){const t=document.getElementById('report-type').value;const el=document.getElementById('report-pts-preview');if(el)el.textContent=state.reportPts[t]||20;const c=document.getElementById('report-custom-pts');if(c)c.value='';}
+function submitReport(){
+  const kid=document.getElementById('report-kid').value;const type=document.getElementById('report-type').value;const title=(document.getElementById('report-title').value||'').trim();const summary=(document.getElementById('report-summary').value||'').trim();const customPts=parseInt(document.getElementById('report-custom-pts').value);const pts=customPts||(state.reportPts[type]||20);const p=state.participants[kid];
+  if(!title){alert('Please enter the title.');return;}if(summary.length<20){alert('Please write a proper summary (2-3 sentences minimum).');return;}if(!p){alert('Please select a participant.');return;}
+  const typeLabels={book:'📖 Book',ted:'🎤 TED talk',documentary:'🎬 Documentary','online-lesson':'💻 Online lesson',podcast:'🎧 Podcast',article:'📰 Article',other:'🌟 Other'};
+  state.pendingReports.push({id:Date.now(),kid,kidName:p.name,type,typeLabel:typeLabels[type]||type,title,summary,pts,date:new Date().toLocaleDateString(),status:'pending'});
+  document.getElementById('report-title').value='';document.getElementById('report-summary').value='';document.getElementById('report-custom-pts').value='';
+  save();render();alert('📤 Report submitted! Waiting for parent approval ✅');
+}
+function approveReport(id){const idx=state.pendingReports.findIndex(r=>r.id===id);if(idx<0)return;const r=state.pendingReports[idx];const p=state.participants[r.kid];if(p){p.learnPoints=(p.learnPoints||0)+r.pts;p.learnDone=(p.learnDone||0)+1;p.weeklyLearn=(p.weeklyLearn||0)+1;}r.status='approved';state.learningLog.push(r);state.pendingReports.splice(idx,1);save();render();}
+function rejectReport(id){const idx=state.pendingReports.findIndex(r=>r.id===id);if(idx<0)return;const r=state.pendingReports[idx];if(!confirm('Send back "'+r.title+'" without points?'))return;r.status='returned';state.learningLog.push(r);state.pendingReports.splice(idx,1);save();render();}
+
+// ─── GOALS ───────────────────────────────────────────────────
+function addGoal(){const kid=document.getElementById('goal-kid').value;const name=(document.getElementById('goal-name').value||'').trim();const pts=parseInt(document.getElementById('goal-pts').value)||0;if(!name||!pts){alert('Please fill in goal name and points.');return;}state.goals.push({id:Date.now(),kid,name,pts,created:new Date().toLocaleDateString()});document.getElementById('goal-name').value='';document.getElementById('goal-pts').value='';save();render();}
+function deleteGoal(id){state.goals=state.goals.filter(g=>g.id!==id);save();render();}
+
+// ─── MANAGE ──────────────────────────────────────────────────
+function saveCOTW(){state.cotw={choreId:parseInt(document.getElementById('cotw-chore-sel').value),bonusPts:parseInt(document.getElementById('cotw-bonus-pts').value)||20};save();render();}
+function clearCOTW(){state.cotw={choreId:null,bonusPts:20};save();render();}
+function saveStreakSettings(){state.streakSettings={bonusPts:parseInt(document.getElementById('streak-bonus-pts').value)||25,doubleDay:document.getElementById('double-day-sel').value};save();render();const btn=event.target;btn.textContent='Saved! ✅';setTimeout(()=>btn.textContent='Save streak settings',1500);}
+function saveReportPts(){['book','ted','documentary','online-lesson','podcast','article','other'].forEach(k=>{const el=document.getElementById('rpts-'+k);if(el)state.reportPts[k]=parseInt(el.value)||20;});save();const btn=event.target;btn.textContent='Saved! ✅';setTimeout(()=>btn.textContent='Save defaults',1500);}
+function changePin(){const op=document.getElementById('old-pin').value;const np=document.getElementById('new-pin').value;const msg=document.getElementById('pin-change-msg');if(op!==state.pin){msg.style.color='#E24B4A';msg.textContent='Current PIN incorrect.';return;}if(!/^\d{4}$/.test(np)){msg.style.color='#E24B4A';msg.textContent='Must be exactly 4 digits.';return;}state.pin=np;save();msg.style.color='#0F6E56';msg.textContent='PIN updated! ✅';document.getElementById('old-pin').value='';document.getElementById('new-pin').value='';setTimeout(()=>msg.textContent='',2500);}
+
+// ─── REWARDS ─────────────────────────────────────────────────
+function saveRates(){state.rates.screen=parseInt(document.getElementById('screen-rate').value)||10;state.rates.money=parseInt(document.getElementById('money-rate').value)||20;state.rates.penalty=parseInt(document.getElementById('penalty-pts').value)||5;save();render();}
+function redeem(kid,type){const p=state.participants[kid];if(!p)return;const total=totalPts(kid);if(total<=0){alert('No points to redeem!');return;}const reward=type==='screen'?Math.floor(total/state.rates.screen)+'h screen time':'$'+(total/state.rates.money).toFixed(2)+' cash';if(!confirm('Redeem '+total+' points for '+p.name+' as '+reward+'?'))return;state.history.push({kid:p.name,reward,pts:total,type,date:new Date().toLocaleDateString()});['chorePoints','learnPoints','bonusDone','learnDone','missed','streak','weeklyDone','weeklyMissed','weeklyLearn'].forEach(f=>p[f]=0);save();render();}
+function resetKid(kid){const p=state.participants[kid];if(!p||!confirm('Reset '+p.name+"'s month?"))return;['chorePoints','learnPoints','bonusDone','learnDone','missed','streak','weeklyDone','weeklyMissed','weeklyLearn'].forEach(f=>p[f]=0);save();render();}
+
+// ─── SETTINGS ────────────────────────────────────────────────
+function saveParticipantName(kid){const inp=document.getElementById('pname-'+kid);if(!inp)return;const name=inp.value.trim();if(!name)return;state.participants[kid].name=name;save();render();}
+function saveParticipantTheme(kid,theme){state.participants[kid].theme=theme;save();render();}
+function removeParticipant(kid){if(!confirm('Remove this participant and all their data?'))return;delete state.participants[kid];state.participantOrder=state.participantOrder.filter(id=>id!==kid);save();render();}
+function addParticipant(){
+  const name=(document.getElementById('new-participant-name').value||'').trim();const theme=document.getElementById('new-participant-theme').value;
+  if(!name){alert('Please enter a name.');return;}
+  const id='k'+state.nextParticipantId++;
+  state.participants[id]={id,name,theme,chorePoints:0,learnPoints:0,bonusDone:0,learnDone:0,missed:0,streak:0,lastStreakDate:'',weeklyDone:0,weeklyMissed:0,weeklyLearn:0};
+  state.participantOrder.push(id);
+  document.getElementById('new-participant-name').value='';save();render();
+}
+function changeSitePassword(){
+  const op=(document.getElementById('site-pwd-old').value||'');const np=(document.getElementById('site-pwd-new').value||'');const msg=document.getElementById('site-pwd-msg');
+  if(op!==state.sitePassword){msg.style.color='#E24B4A';msg.textContent='Current password incorrect.';return;}if(!/^\d{4,6}$/.test(np)){msg.style.color='#E24B4A';msg.textContent='New password must be 4-6 digits.';return;}
+  state.sitePassword=np;save();msg.style.color='#0F6E56';msg.textContent='Site password updated! ✅';document.getElementById('site-pwd-old').value='';document.getElementById('site-pwd-new').value='';setTimeout(()=>msg.textContent='',2500);
+}
+function exportData(){const data=JSON.stringify(state,null,2);const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='letsgooo-backup.json';a.click();URL.revokeObjectURL(url);}
+function importDataPrompt(){const input=document.createElement('input');input.type='file';input.accept='.json';input.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const s=JSON.parse(ev.target.result);if(!s.participants)throw new Error('Invalid');if(confirm('Import this backup? Current data will be replaced.')){state=s;save();render();alert('Data imported successfully! ✅');};}catch(err){alert('Invalid backup file.');}};r.readAsText(f);};input.click();}
+function resetAllPoints(){if(!confirm('Reset ALL points for ALL participants? This cannot be undone.'))return;pIds().forEach(k=>{['chorePoints','learnPoints','bonusDone','learnDone','missed','streak','weeklyDone','weeklyMissed','weeklyLearn'].forEach(f=>state.participants[k][f]=0);});save();render();alert('All points reset. ✅');}
+function resetEverything(){if(!confirm('RESET EVERYTHING? All data will be deleted. This cannot be undone.'))return;if(!confirm('Are you absolutely sure?'))return;localStorage.removeItem('letsgooo_v1');location.reload();}
+
+// ─── RENDER ───────────────────────────────────────────────────
+function render(){renderDashboard();renderWeekly();renderPool();renderLearning();renderGoals();renderReportCard();renderApprovals();renderManage();renderRewards();renderSettings();updateLockStatus();}
+
+function renderDashboard(){
+  const ids=pIds();const grid=document.getElementById('kids-grid');
+  if(grid){
+    grid.style.gridTemplateColumns=ids.length===1?'1fr':ids.length===2?'1fr 1fr':'repeat(auto-fit,minmax(200px,1fr))';
+    grid.innerHTML=ids.map(k=>{const p=state.participants[k];const cs=CARD_STYLES[p.theme]||CARD_STYLES.pink;const tc=THEME_CONFIG[p.theme]||THEME_CONFIG.pink;const streak=p.streak||0;
+      return`<div class="card" style="background:${cs.bg};border:${cs.border}">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="flex-shrink:0">${kidSVG(p.theme,50)}</div>
+          <div style="flex:1"><div style="font-size:15px;font-weight:700">${p.name}</div><div style="font-size:11px;color:#888">This month</div>${streak>=3?`<div style="font-size:11px;font-weight:600;color:#854F0B;margin-top:2px">🔥 ${streak} day streak!</div>`:''}</div>
+        </div>
+        <div class="two-col-pts">
+          <div class="pts-box" style="background:${cs.ptsBg1};border-color:${cs.ptsBorder1}"><div class="num" style="color:${cs.ptsColor1}">${p.chorePoints||0}</div><div class="lbl">🧹 chore pts</div></div>
+          <div class="pts-box" style="background:${cs.ptsBg2};border-color:${cs.ptsBorder2}"><div class="num" style="color:${cs.ptsColor2}">${p.learnPoints||0}</div><div class="lbl">📚 learning pts</div></div>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">
+          <span class="badge ${cs.badgeClass1}">${p.bonusDone||0} bonus</span>
+          <span class="badge badge-blue">${p.learnDone||0} reports</span>
+          <span class="badge badge-red">${p.missed||0} missed</span>
+        </div>
+      </div>`;}).join('');
+  }
+
+  const cotw=state.cotw;const cotwEl=document.getElementById('cotw-banner');
+  if(cotwEl){if(cotw.choreId){const c=getChore(cotw.choreId);cotwEl.innerHTML=c?`<div style="background:linear-gradient(135deg,#EEEDFE,#E6F1FB);border:2px solid #AFA9EC;border-radius:16px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:10px;font-weight:700;color:#3C3489;text-transform:uppercase;letter-spacing:.05em">⭐ Chore of the week</div><div style="font-size:15px;font-weight:600;margin-top:3px">${choreIcon(c.name)} ${c.name}</div></div><span class="badge badge-purple">+${cotw.bonusPts} bonus pts</span></div>`:'';}else cotwEl.innerHTML='';}
+  const double=isDoubleDay();const ddEl=document.getElementById('double-day-banner');
+  if(ddEl)ddEl.innerHTML=double?`<div style="background:linear-gradient(135deg,#FAEEDA,#EAF3DE);border:2px solid #EF9F27;border-radius:16px;padding:10px 16px;margin-bottom:12px;font-size:13px;font-weight:600;color:#633806;text-align:center">🎉 Double points day! All bonus chores earn 2× today!</div>`:'';
+
+  const dayIdx=new Date().getDay();const today=DAYS[dayIdx===0?6:dayIdx-1];
+  const todayChores=(state.calendar[today]||[]).map(id=>getChore(id)).filter(Boolean);
+  const todayDiv=document.getElementById('today-list');
+  todayDiv.innerHTML=todayChores.length===0?'<div style="color:#888;font-size:13px;text-align:center;padding:16px">🎉 Nothing scheduled — enjoy the break!</div>':
+    todayChores.map(c=>{const isBonus=c.type==='bonus'||c.type==='study-bonus';const isCOTW=cotw.choreId===c.id;const tc=TYPE_COLORS[c.type]||TYPE_COLORS.responsibility;
+      return`<div style="display:flex;align-items:center;gap:10px;background:${tc.bg};border-radius:12px;padding:10px 12px;margin-bottom:6px;border:1.5px solid ${tc.border}">
+        <span style="font-size:20px">${choreIcon(c.name)}</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:${tc.text}">${c.name}${isCOTW?' ⭐':''}</div><div style="font-size:10px;color:${tc.text};opacity:.8">${isBonus?'+'+(double?c.pts*2:c.pts)+(isCOTW?'+'+cotw.bonusPts:'')+' pts':'Required — miss = -'+state.rates.penalty+' pts'}</div></div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">${ids.map(k=>`<button class="btn btn-sm btn-${isBonus?'green':'red'}" onclick="markDone('${k}',${c.id},'${c.type}')" style="display:flex;align-items:center;gap:3px"><span style="font-size:13px">${kidSVG(state.participants[k].theme,16)}</span><span>${state.participants[k].name}</span></button>`).join('')}</div>
+      </div>`;}).join('');
+
+  document.getElementById('current-month').textContent=new Date().toLocaleString('default',{month:'long',year:'numeric'});
+  document.getElementById('reward-progress').innerHTML=ids.map(k=>{const p=state.participants[k];const total=totalPts(k);const cp=p.chorePoints||0;const lp=p.learnPoints||0;const tc=THEME_CONFIG[p.theme]||THEME_CONFIG.pink;
+    return`<div style="margin-bottom:12px;background:#fff;border-radius:12px;padding:12px;border:1.5px solid #f0f0f0">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div style="flex-shrink:0">${kidSVG(p.theme,30)}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${p.name}</div><div style="font-size:11px;color:#888">${Math.floor(total/state.rates.screen)}h screen OR $${(total/state.rates.money).toFixed(2)}</div></div><div style="text-align:right"><div style="font-size:20px;font-weight:700">${total}</div><div style="font-size:10px;color:#888">pts total</div></div></div>
+      <div style="display:flex;height:9px;border-radius:99px;overflow:hidden;background:#f0f0f0"><div style="width:${Math.min(100,cp/2)}%;background:${tc.barColor}"></div><div style="width:${Math.min(60,lp/2)}%;background:${tc.learnColor}"></div></div>
+      <div style="display:flex;gap:10px;margin-top:4px;font-size:10px;color:#888"><span>🧹 ${cp} chore</span><span>📚 ${lp} learning</span></div>
+    </div>`;}).join('');
+
+  const qk=document.getElementById('quick-kid');const qc=document.getElementById('quick-chore');
+  if(qk)qk.innerHTML=ids.map(k=>`<option value="${k}">${state.participants[k].name}</option>`).join('');
+  if(qc){const bonus=state.chores.filter(c=>c.type==='bonus');qc.innerHTML=bonus.map(c=>`<option value="${c.id}">${choreIcon(c.name)} ${c.name} (${c.pts}pts)</option>`).join('');}
+}
+
+function renderWeekly(){
+  const grid=document.getElementById('week-grid');if(!grid)return;
+  grid.innerHTML=DAYS.map(d=>{const tasks=(state.calendar[d]||[]).map(id=>getChore(id)).filter(Boolean);return`<div class="day-col"><div class="day-name">${d.slice(0,3)}</div>${tasks.map(c=>`<div class="day-task ${c.type}" onclick="removeFromCalendar('${d}',${c.id})" title="tap to remove">${choreIcon(c.name)} ${c.name.length>11?c.name.slice(0,10)+'…':c.name}</div>`).join('')}<div style="font-size:8px;color:#bbb;margin-top:3px;text-align:center">tap to remove</div></div>`;}).join('');
+}
+
+function renderPool(){
+  const div=document.getElementById('pool-list');if(!div)return;const ids=pIds();const bonus=state.chores.filter(c=>c.type==='bonus');const diffLabel={easy:'🟢 Easy',medium:'🟡 Medium',hard:'🔴 Hard'};
+  div.innerHTML=bonus.length===0?'<div style="font-size:13px;color:#888">No bonus chores yet — add some in Manage.</div>':
+    bonus.map(c=>`<div class="pool-row"><span style="font-size:22px">${choreIcon(c.name)}</span><div style="flex:1"><div style="font-size:13px;font-weight:600">${c.name}${state.cotw.choreId===c.id?' ⭐':''}</div><span style="font-size:11px;color:#888">${diffLabel[c.diff||'easy']}</span></div><div class="badge badge-green" style="margin-right:8px">+${c.pts} pts</div><div style="display:flex;gap:5px;flex-wrap:wrap">${ids.map(k=>`<button class="btn btn-sm btn-green" onclick="claimPoolChore('${k}',${c.id})" style="display:flex;align-items:center;gap:3px"><span style="font-size:13px">${kidSVG(state.participants[k].theme,16)}</span>${state.participants[k].name}</button>`).join('')}</div></div>`).join('');
+}
+
+function renderLearning(){
+  const ids=pIds();const rk=document.getElementById('report-kid');if(rk)rk.innerHTML=ids.map(k=>`<option value="${k}">${state.participants[k].name}</option>`).join('');updateReportPts();
+  const log=document.getElementById('learning-log');if(!log)return;
+  log.innerHTML=[...state.learningLog].reverse().map(r=>`<div class="report-row"><div style="flex-shrink:0">${kidSVG(state.participants[r.kid]?.theme||'pink',32)}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${r.title} <span class="badge badge-blue" style="font-size:10px">${r.typeLabel}</span>${r.status==='returned'?'<span class="badge badge-red" style="font-size:10px;margin-left:3px">returned</span>':''}</div><div style="font-size:11px;color:#888;margin-top:3px">${r.summary.length>110?r.summary.slice(0,110)+'…':r.summary}</div><div style="font-size:10px;color:#bbb;margin-top:3px">${r.kidName} · ${r.date}</div></div>${r.status!=='returned'?`<div style="text-align:right;flex-shrink:0"><div style="font-size:17px;font-weight:700;color:#185FA5">+${r.pts}</div><div style="font-size:9px;color:#888">pts</div></div>`:''}</div>`).join('')||'<div style="font-size:13px;color:#888;text-align:center;padding:16px">📚 No approved reports yet!</div>';
+}
+
+function renderGoals(){
+  const ids=pIds();const gk=document.getElementById('goal-kid');if(gk)gk.innerHTML=ids.map(k=>`<option value="${k}">${state.participants[k].name}</option>`).join('');
+  const gl=document.getElementById('goals-list');if(!gl)return;
+  gl.innerHTML=state.goals.map(g=>{const p=state.participants[g.kid];if(!p)return'';const current=totalPts(g.kid);const pct=Math.min(100,Math.round(current/g.pts*100));const reached=current>=g.pts;const tc=THEME_CONFIG[p.theme]||THEME_CONFIG.pink;
+    return`<div style="padding:12px 0;border-bottom:1px solid #f5f5f5"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div>${kidSVG(p.theme,30)}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${g.name}</div><div style="font-size:11px;color:#888">${p.name} · ${g.created}</div></div><div style="display:flex;align-items:center;gap:7px">${reached?'<span style="font-size:18px">🏆</span>':''}<span style="font-size:12px;color:#888">${current}/${g.pts} pts</span><button class="btn btn-sm" onclick="deleteGoal(${g.id})">Remove</button></div></div><div class="goal-bar-wrap"><div class="goal-bar-fill" style="width:${pct}%;background:${reached?'#1D9E75':tc.barColor}"></div></div><div style="font-size:10px;color:#888;margin-top:4px">${pct}% there${reached?' — Goal reached! 🎉':''}</div></div>`;}).join('')||'<div style="font-size:13px;color:#888;text-align:center;padding:16px">🎯 No goals yet — set one below!</div>';
+}
+
+function renderReportCard(){
+  const el=document.getElementById('report-card-content');if(!el)return;
+  el.innerHTML=pIds().map(k=>{const p=state.participants[k];const total=totalPts(k);const cs=CARD_STYLES[p.theme]||CARD_STYLES.pink;const grade=p.weeklyMissed===0&&(p.weeklyDone||0)>2?'A+':p.weeklyMissed<=1?'A':p.weeklyMissed<=2?'B':'C';const gradeColor={'A+':'#0F6E56','A':'#3B6D11','B':'#854F0B','C':'#A32D2D'}[grade];const gradeEmoji={'A+':'🏆','A':'⭐','B':'👍','C':'💪'}[grade];
+    return`<div class="report-card-box" style="background:${cs.bg};border:${cs.border}"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="display:flex;align-items:center;gap:12px">${kidSVG(p.theme,44)}<div style="font-size:16px;font-weight:700">${p.name}</div></div><div style="text-align:center"><div style="font-size:36px;font-weight:700;color:${gradeColor}">${grade}</div><div style="font-size:18px">${gradeEmoji}</div></div></div><div class="stat-grid"><div class="stat-cell"><div class="stat-num" style="color:#1D9E75">${p.weeklyDone||0}</div><div class="stat-lbl">✅ tasks done</div></div><div class="stat-cell"><div class="stat-num" style="color:#E24B4A">${p.weeklyMissed||0}</div><div class="stat-lbl">❌ missed</div></div><div class="stat-cell"><div class="stat-num" style="color:#185FA5">${p.weeklyLearn||0}</div><div class="stat-lbl">📚 reports</div></div></div><div style="margin-top:10px;font-size:12px;color:#555;display:flex;flex-direction:column;gap:4px"><div>💰 Total: <strong>${total} pts</strong></div><div>🔥 Streak: <strong>${p.streak||0} days</strong>${p.streak>=7?' — On fire! 🔥':p.streak>=3?' — Building! 💪':''}</div>${(p.weeklyMissed||0)===0?'<div style="color:#0F6E56">🌟 No points lost — amazing week!</div>':'<div style="color:#E24B4A">Lost '+((p.weeklyMissed||0)*state.rates.penalty)+' pts from misses</div>'}</div></div>`;}).join('');
+}
+
+function renderApprovals(){
+  if(!unlocked.approvals)return;const el=document.getElementById('pending-approvals');if(!el)return;
+  el.innerHTML=state.pendingReports.map(r=>`<div class="approval-row"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">${kidSVG(state.participants[r.kid]?.theme||'pink',30)}<div><div style="font-size:13px;font-weight:600">${r.title}</div><div style="font-size:11px;color:#888">${r.kidName} · ${r.typeLabel} · ${r.date} · <strong>+${r.pts} pts</strong></div></div></div><div style="font-size:12px;color:#555;margin-bottom:10px;background:#fff;border-radius:10px;padding:8px 10px;border:1.5px solid #f0f0f0">"${r.summary}"</div><div style="display:flex;gap:8px"><button class="btn btn-green btn-sm" onclick="approveReport(${r.id})">✅ Approve +${r.pts} pts</button><button class="btn btn-red btn-sm" onclick="rejectReport(${r.id})">↩️ Send back</button></div></div>`).join('')||'<div style="font-size:13px;color:#888;text-align:center;padding:16px">✅ No pending reports — all clear!</div>';
+}
+
+function renderManage(){
+  if(!unlocked.manage)return;
+  const types={responsibility:'resp',bonus:'bonus','study-required':'study-req','study-bonus':'study-bonus'};
+  const diffLabel={easy:'🟢 Easy',medium:'🟡 Medium',hard:'🔴 Hard'};
+  Object.keys(types).forEach(t=>{const el=document.getElementById(types[t]+'-list');if(!el)return;const items=state.chores.filter(c=>c.type===t);const isBonus=t==='bonus'||t==='study-bonus';el.innerHTML=items.length===0?'<div style="font-size:12px;color:#888">None yet.</div>':items.map(c=>`<div class="chore-row"><span style="font-size:18px">${choreIcon(c.name)}</span><div style="flex:1;font-size:13px;font-weight:500">${c.name} <span style="font-size:10px;color:#888;font-weight:400">${diffLabel[c.diff||'easy']}</span></div><div style="display:flex;align-items:center;gap:6px"><span class="badge ${isBonus?'badge-green':'badge-red'}">${isBonus?'+'+c.pts+' pts':'-'+state.rates.penalty+' if missed'}</span><button class="btn btn-sm" onclick="deleteChore(${c.id})">Remove</button></div></div>`).join('');});
+  const cotwSel=document.getElementById('cotw-chore-sel');if(cotwSel){const bonus=state.chores.filter(c=>c.type==='bonus');cotwSel.innerHTML=bonus.map(c=>`<option value="${c.id}"${state.cotw.choreId===c.id?' selected':''}>${choreIcon(c.name)} ${c.name}</option>`).join('');const cbp=document.getElementById('cotw-bonus-pts');if(cbp)cbp.value=state.cotw.bonusPts;}
+  const sbp=document.getElementById('streak-bonus-pts');if(sbp)sbp.value=state.streakSettings.bonusPts||25;
+  const dds=document.getElementById('double-day-sel');if(dds)dds.value=state.streakSettings.doubleDay||'';
+  const rps=document.getElementById('report-pts-settings');if(rps){const labels={book:'📖 Book',ted:'🎤 TED talk',documentary:'🎬 Documentary','online-lesson':'💻 Online lesson',podcast:'🎧 Podcast',article:'📰 Article',other:'🌟 Other'};rps.innerHTML=Object.keys(labels).map(k=>`<div class="input-row" style="margin-bottom:6px"><div style="flex:1;font-size:13px">${labels[k]}</div><input type="number" id="rpts-${k}" value="${state.reportPts[k]||20}" style="width:65px" min="1"><span style="font-size:11px;color:#888">pts</span></div>`).join('');}
+}
+
+function renderRewards(){
+  if(!unlocked.rewards)return;const ids=pIds();
+  const sr=document.getElementById('screen-rate');const mr=document.getElementById('money-rate');const pp=document.getElementById('penalty-pts');if(sr)sr.value=state.rates.screen;if(mr)mr.value=state.rates.money;if(pp)pp.value=state.rates.penalty;
+  const rs=document.getElementById('redeem-section');if(rs){rs.innerHTML=ids.map(k=>{const p=state.participants[k];const total=totalPts(k);const cp=p.chorePoints||0;const lp=p.learnPoints||0;return`<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #f5f5f5"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">${kidSVG(p.theme,36)}<div><div style="font-size:14px;font-weight:700">${p.name}</div><div style="font-size:11px;color:#888">🧹 ${cp} chore + 📚 ${lp} learning = <strong>${total} pts</strong></div></div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-green" onclick="redeem('${k}','screen')">📺 ${Math.floor(total/state.rates.screen)}h screen time</button><button class="btn" onclick="redeem('${k}','money')">💵 $${(total/state.rates.money).toFixed(2)} cash</button><button class="btn btn-red btn-sm" onclick="resetKid('${k}')">🔄 Reset month</button></div></div>`;}).join('');}
+  const hl=document.getElementById('history-list');if(hl){hl.innerHTML=state.history.length===0?'<div style="font-size:13px;color:#888;text-align:center;padding:16px">📜 No redemptions yet</div>':state.history.slice().reverse().map(h=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5"><div><div style="font-size:13px;font-weight:600">${h.kid} — ${h.reward}</div><div style="font-size:11px;color:#888">${h.date} · ${h.pts} pts</div></div><span class="badge ${h.type==='screen'?'badge-purple':'badge-amber'}">${h.type==='screen'?'📺 screen':'💵 cash'}</span></div>`).join('');}
+}
+
+function renderSettings(){
+  if(!unlocked.settings)return;const ids=pIds();const pl=document.getElementById('participants-list');
+  if(pl){
+    const themes=['pink','gold','blue','green','purple'];const themeLabels={pink:'🩷 Pink dragon',gold:'🧡 Golden lion',blue:'💙 Blue whale',green:'💚 Green turtle',purple:'💜 Purple owl'};
+    pl.innerHTML=ids.map(k=>{const p=state.participants[k];return`<div class="participant-row"><div style="flex-shrink:0">${kidSVG(p.theme,42)}</div><div style="flex:1"><div class="input-row" style="margin-bottom:6px"><input type="text" id="pname-${k}" value="${p.name}" style="flex:1;font-weight:600" placeholder="Name"><button class="btn btn-sm btn-green" onclick="saveParticipantName('${k}')">Save</button></div><div style="font-size:11px;color:#888;margin-bottom:6px">Theme:</div><select onchange="saveParticipantTheme('${k}',this.value)" style="font-size:12px;height:32px">${themes.map(t=>`<option value="${t}"${p.theme===t?' selected':''}>${themeLabels[t]}</option>`).join('')}</select></div><div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end"><div style="font-size:12px;color:#888">${totalPts(k)} pts</div>${ids.length>1?`<button class="btn btn-red btn-sm" onclick="removeParticipant('${k}')">Remove</button>`:''}</div></div>`;}).join('')||'<div style="color:#888;font-size:13px">No participants yet.</div>';
+  }
+}
+
+render();
+</script>
+</body>
+</html>
