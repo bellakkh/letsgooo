@@ -2,8 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Let's Gooo 🚀</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Let's Gooo">
+<meta name="theme-color" content="#EEEDFE">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f7ff;min-height:100vh;color:#1a1a2e}
@@ -21,6 +25,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .gate-btn{height:52px;border:1.5px solid #CECBF6;border-radius:12px;background:#fff;cursor:pointer;font-size:20px;font-weight:500;color:#3C3489;transition:all .15s}
 .gate-btn:hover{background:#EEEDFE}
 .gate-btn:active{transform:scale(0.95)}
+.btn:active{opacity:.8}
+* {-webkit-tap-highlight-color:transparent}
 .gate-err{font-size:13px;color:#E24B4A;margin-top:12px;min-height:18px}
 /* APP */
 #app{display:none;max-width:900px;margin:0 auto;padding:12px}
@@ -113,7 +119,98 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 .color-pick{display:flex;gap:6px;flex-wrap:wrap}
 .color-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s}
 .color-swatch.selected{border-color:#333;transform:scale(1.15)}
-@media(max-width:600px){.grid2{grid-template-columns:1fr}.week-grid{grid-template-columns:repeat(7,1fr)}.tabs{gap:4px}.tab{padding:5px 8px;font-size:11px}}
+
+/* ── MOBILE RESPONSIVE ─────────────────────────────────────── */
+@media(max-width:640px){
+  #app{padding:8px}
+  .topbar{padding:8px 12px;margin-bottom:10px}
+  .appname{font-size:17px}
+
+  /* Tabs: scroll horizontally instead of wrapping */
+  .tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:4px}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{padding:6px 10px;font-size:11px;white-space:nowrap;flex-shrink:0}
+
+  /* Cards */
+  .card{padding:12px 14px;margin-bottom:10px}
+  .section-title{font-size:14px}
+
+  /* Kid cards stack vertically */
+  .grid2{grid-template-columns:1fr}
+
+  /* Weekly calendar: scrollable horizontally */
+  .week-grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .week-grid{min-width:480px;gap:4px}
+  .day-col{min-height:100px}
+
+  /* Input rows wrap on mobile */
+  .input-row{flex-wrap:wrap;gap:6px}
+  .input-row input[type=text],
+  .input-row input[type=number],
+  .input-row input[type=password],
+  .input-row select{height:40px;font-size:14px}
+
+  /* Manage tab: full-width inputs */
+  #manage-picker-wrap{flex:1 1 100% !important;min-width:0}
+  #new-chore-type{flex:1 1 calc(50% - 3px) !important}
+  #new-chore-diff{flex:1 1 calc(50% - 3px) !important}
+  #new-chore-pts{width:70px}
+  #icon-picker{max-height:100px;overflow-y:auto}
+
+  /* Pool rows stack */
+  .pool-row{flex-wrap:wrap;gap:6px}
+
+  /* Report rows */
+  .report-row{gap:8px}
+
+  /* Stat grid 3-col stays but smaller */
+  .stat-cell{padding:7px 2px}
+  .stat-num{font-size:18px}
+
+  /* Approval rows */
+  .approval-row{padding:10px}
+
+  /* Goals bar */
+  .goal-bar-wrap{height:12px}
+  .goal-bar-fill{height:12px}
+
+  /* PIN numpad bigger touch targets */
+  .num-btn{height:54px;font-size:20px}
+  .gate-btn{height:58px;font-size:22px}
+  .gate-numpad{max-width:260px;gap:12px}
+  .numpad{max-width:230px;gap:10px}
+
+  /* Today task buttons */
+  .today-btns{flex-wrap:wrap;gap:4px}
+
+  /* Two-col pts side by side still fine */
+  .two-col-pts{gap:6px}
+  .pts-box .num{font-size:20px}
+
+  /* Report card */
+  .report-card-box{padding:12px}
+
+  /* Redeem buttons */
+  .redeem-row{flex-wrap:wrap}
+
+  /* Points editor */
+  #edit-kid,#edit-type,#edit-action{flex:1 1 calc(50% - 3px) !important}
+  #edit-amount{width:80px}
+  #edit-reason{flex:1 1 100% !important}
+
+  /* Participant rows in settings */
+  .participant-row{flex-wrap:wrap;gap:8px}
+
+  /* Calendar add row */
+  #add-day-sel{flex:1 1 100% !important}
+  #cal-picker-wrap{flex:1 1 100% !important}
+  #cal-type-sel{flex:1 1 100% !important}
+}
+@media(max-width:380px){
+  .tab{padding:5px 8px;font-size:10px}
+  .pts-box .num{font-size:18px}
+  .stat-num{font-size:16px}
+}
 </style>
 </head>
 <body>
@@ -124,12 +221,7 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
     <div class="gate-logo">🚀</div>
     <div class="gate-title">Let's Gooo!</div>
     <div class="gate-sub">Family tracker — enter password to continue</div>
-    <div class="gate-dots" id="gate-dots">
-      <div class="gate-dot" id="gdot-0"></div>
-      <div class="gate-dot" id="gdot-1"></div>
-      <div class="gate-dot" id="gdot-2"></div>
-      <div class="gate-dot" id="gdot-3"></div>
-    </div>
+    <div class="gate-dots" id="gate-dots"></div>
     <div class="gate-numpad">
       <button class="gate-btn" onclick="gatePress('1')">1</button>
       <button class="gate-btn" onclick="gatePress('2')">2</button>
@@ -190,7 +282,7 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 <div id="tab-weekly" class="section">
   <div class="card">
     <div class="section-header"><span class="section-icon">📅</span><div class="section-title" style="margin:0">Weekly calendar</div><div style="margin-left:auto"><span class="tag tag-resp">resp</span><span class="tag tag-bonus">bonus</span><span class="tag tag-study-req">hw</span><span class="tag tag-study-bonus">learn</span></div></div>
-    <div class="week-grid" id="week-grid"></div>
+    <div class="week-grid-wrap"><div class="week-grid" id="week-grid"></div></div>
   </div>
   <div class="card">
     <div class="section-title">➕ Add recurring task</div>
@@ -288,7 +380,7 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
         <div style="font-size:12px;color:#888;flex:0 0 auto">Pts:</div>
         <input type="number" id="new-chore-pts" placeholder="auto" style="width:70px" min="0">
         <div id="pts-hint" style="font-size:11px;color:#888;flex:1"></div>
-        <button class="btn btn-green" onclick="addChoreFromPicker()">+ Add</button>
+        <button class="btn btn-green" onclick="addChoreFromPicker()" style="white-space:nowrap">+ Add</button>
       </div>
       <div style="font-size:11px;color:#888;margin-top:-4px">Points auto-fill based on type + difficulty. Override if needed.</div>
     </div>
@@ -536,6 +628,8 @@ function load(){
   }catch(e){}
 }
 load();
+// init gate dots after state is loaded
+document.addEventListener('DOMContentLoaded',()=>renderGateDots());
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function totalPts(k){const p=state.participants[k];return(p.chorePoints||0)+(p.learnPoints||0);}
@@ -554,21 +648,24 @@ function kidSVG(theme,size){
 
 // ─── ENTRY GATE ───────────────────────────────────────────────
 let gateDigits=[];
+function renderGateDots(err=false){
+  const pwd=state.sitePassword||'1216';
+  const container=document.getElementById('gate-dots');
+  if(!container)return;
+  container.innerHTML=Array.from({length:pwd.length},(_,i)=>`<div class="gate-dot${err?' error':gateDigits[i]?' filled':''}" id="gdot-${i}"></div>`).join('');
+}
 function gatePress(v){
   if(v==='')return;
   if(v==='⌫'){gateDigits.pop();}else{if(gateDigits.length>=6)return;gateDigits.push(v);}
-  updateGateDots();
+  renderGateDots();
   if(gateDigits.length>0&&gateDigits.length===state.sitePassword.length){setTimeout(checkGate,120);}
 }
-function updateGateDots(err=false){
-  const pwd=state.sitePassword;
-  for(let i=0;i<4;i++){const d=document.getElementById('gdot-'+i);if(!d)continue;d.className='gate-dot'+(err?'error':gateDigits[i]?' filled':'');}
-}
+function updateGateDots(err=false){renderGateDots(err);}
 function checkGate(){
   if(gateDigits.join('')===state.sitePassword){
     document.getElementById('entry-gate').style.display='none';document.getElementById('app').style.display='block';render();
   } else {
-    for(let i=0;i<4;i++){const d=document.getElementById('gdot-'+i);if(d)d.className='gate-dot error';}
+    renderGateDots(true);
     document.getElementById('gate-err').textContent='Wrong password, try again.';
     setTimeout(()=>{gateDigits=[];updateGateDots();document.getElementById('gate-err').textContent='';},1400);
   }
@@ -621,17 +718,34 @@ function buildDropdownHTML(filter,ctx){
   CHORE_SUGGESTIONS.forEach(g=>{
     const items=g.items.filter(i=>!f||i.name.toLowerCase().includes(f));if(!items.length)return;any=true;
     html+=`<div class="chore-group-label">${g.group}</div>`;
-    items.forEach(i=>{const isAdded=added.includes(i.name.toLowerCase());html+=`<div class="chore-option${isAdded?' already-added':''}" onmousedown="pickSuggestion('${ctx}',${JSON.stringify(i.name)},${JSON.stringify(i.type)},${JSON.stringify(i.diff||'easy')})">${choreIcon(i.name)} ${i.name}${isAdded?' ✓':''}</div>`;});
+    items.forEach(i=>{const isAdded=added.includes(i.name.toLowerCase());html+=`<div class="chore-option${isAdded?' already-added':''}" onclick="pickSuggestion('${ctx}',${JSON.stringify(i.name)},${JSON.stringify(i.type)},${JSON.stringify(i.diff||'easy')})">${choreIcon(i.name)} ${i.name}${isAdded?' ✓':''}</div>`;});
   });
   if(!any&&f)html+=`<div class="chore-option" style="font-style:italic;color:#888">Use "${filter}" as custom chore</div>`;
   return html||'<div style="padding:10px;font-size:12px;color:#888">No matches</div>';
 }
-function openDropdown(ctx){const dd=document.getElementById(ctx+'-dropdown');const inp=document.getElementById(ctx+'-chore-input');if(!dd||!inp)return;dd.innerHTML=buildDropdownHTML(inp.value,ctx);dd.classList.add('open');}
-function filterDropdown(ctx){const dd=document.getElementById(ctx+'-dropdown');const inp=document.getElementById(ctx+'-chore-input');if(!dd||!inp)return;dd.innerHTML=buildDropdownHTML(inp.value,ctx);dd.classList.add('open');}
-function scheduleClose(ctx){dropdownClose[ctx]=setTimeout(()=>{const dd=document.getElementById(ctx+'-dropdown');if(dd)dd.classList.remove('open');},200);}
+function openDropdown(ctx){
+  const dd=document.getElementById(ctx+'-dropdown');
+  const inp=document.getElementById(ctx+'-chore-input');
+  if(!dd||!inp)return;
+  dd.innerHTML=buildDropdownHTML(inp.value,ctx);
+  dd.classList.add('open');
+  // Prevent blur from closing before click registers
+  dd.onmousedown=function(e){e.preventDefault();};
+}
+function filterDropdown(ctx){
+  const dd=document.getElementById(ctx+'-dropdown');
+  const inp=document.getElementById(ctx+'-chore-input');
+  if(!dd||!inp)return;
+  dd.innerHTML=buildDropdownHTML(inp.value,ctx);
+  dd.classList.add('open');
+  dd.onmousedown=function(e){e.preventDefault();};
+}
+function scheduleClose(ctx){
+  const dd=document.getElementById(ctx+'-dropdown');
+  if(dd)dd.classList.remove('open');
+}
 function pickSuggestion(ctx,name,type,diff){
-  clearTimeout(dropdownClose[ctx]);
-  const inp=document.getElementById(ctx+'-chore-input');if(inp)inp.value=name;
+  const inp=document.getElementById(ctx+'-chore-input');if(inp){inp.value=name;inp.focus();}
   const dd=document.getElementById(ctx+'-dropdown');if(dd)dd.classList.remove('open');
   if(ctx==='manage'){
     const s=document.getElementById('new-chore-type');if(s)s.value=type;
@@ -870,7 +984,7 @@ function renderDashboard(){
       return`<div style="display:flex;align-items:center;gap:10px;background:${tc.bg};border-radius:12px;padding:10px 12px;margin-bottom:6px;border:1.5px solid ${tc.border}">
         <span style="font-size:20px">${choreIcon(c.name,c.icon)}</span>
         <div style="flex:1"><div style="font-size:13px;font-weight:600;color:${tc.text}">${c.name}${isCOTW?' ⭐':''}</div><div style="font-size:10px;color:${tc.text};opacity:.8">${isBonus?'+'+(double?c.pts*2:c.pts)+(isCOTW?'+'+cotw.bonusPts:'')+' pts':'Required — miss = -'+state.rates.penalty+' pts'}</div></div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap">${ids.map(k=>`<button class="btn btn-sm btn-${isBonus?'green':'red'}" onclick="markDone('${k}',${c.id},'${c.type}')" style="display:flex;align-items:center;gap:3px"><span style="font-size:13px">${kidSVG(state.participants[k].theme,16)}</span><span>${state.participants[k].name}</span></button>`).join('')}</div>
+        <div class="today-btns" style="display:flex;gap:5px">${ids.map(k=>`<button class="btn btn-sm btn-${isBonus?'green':'red'}" onclick="markDone('${k}',${c.id},'${c.type}')" style="display:flex;align-items:center;gap:3px"><span style="font-size:13px">${kidSVG(state.participants[k].theme,16)}</span><span>${state.participants[k].name}</span></button>`).join('')}</div>
       </div>`;}).join('');
 
   document.getElementById('current-month').textContent=new Date().toLocaleString('default',{month:'long',year:'numeric'});
@@ -894,7 +1008,7 @@ function renderWeekly(){
 function renderPool(){
   const div=document.getElementById('pool-list');if(!div)return;const ids=pIds();const bonus=state.chores.filter(c=>c.type==='bonus');const diffLabel={easy:'🟢 Easy',medium:'🟡 Medium',hard:'🔴 Hard'};
   div.innerHTML=bonus.length===0?'<div style="font-size:13px;color:#888">No bonus chores yet — add some in Manage.</div>':
-    bonus.map(c=>`<div class="pool-row"><span style="font-size:22px">${choreIcon(c.name,c.icon)}</span><div style="flex:1"><div style="font-size:13px;font-weight:600">${c.name}${state.cotw.choreId===c.id?' ⭐':''}</div><span style="font-size:11px;color:#888">${diffLabel[c.diff||'easy']}</span></div><div class="badge badge-green" style="margin-right:8px">+${c.pts} pts</div><div style="display:flex;gap:5px;flex-wrap:wrap">${ids.map(k=>`<button class="btn btn-sm btn-green" onclick="claimPoolChore('${k}',${c.id})" style="display:flex;align-items:center;gap:3px"><span style="font-size:13px">${kidSVG(state.participants[k].theme,16)}</span>${state.participants[k].name}</button>`).join('')}</div></div>`).join('');
+    bonus.map(c=>`<div class="pool-row"><span style="font-size:22px">${choreIcon(c.name,c.icon)}</span><div style="flex:1"><div style="font-size:13px;font-weight:600">${c.name}${state.cotw.choreId===c.id?' ⭐':''}</div><span style="font-size:11px;color:#888">${diffLabel[c.diff||'easy']}</span></div><div class="badge badge-green" style="margin-right:8px">+${c.pts} pts</div><div class="today-btns" style="display:flex;gap:5px">${ids.map(k=>`<button class="btn btn-sm btn-green" onclick="claimPoolChore('${k}',${c.id})" style="display:flex;align-items:center;gap:3px"><span style="font-size:13px">${kidSVG(state.participants[k].theme,16)}</span>${state.participants[k].name}</button>`).join('')}</div></div>`).join('');
 }
 
 function renderLearning(){
@@ -983,7 +1097,7 @@ function renderRewards(){
     return`<div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #f5f5f5">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">${kidSVG(p.theme,36)}<div><div style="font-size:14px;font-weight:700">${p.name}</div><div style="font-size:11px;color:#888">🧹 ${cp} chore + 📚 ${lp} learning = <strong>${total} pts</strong></div></div></div>
       <div style="background:#f8f7ff;border-radius:10px;padding:8px 12px;font-size:12px;color:#534AB7;margin-bottom:10px">💰 ${savingMsg}</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div class="redeem-row" style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-green" onclick="redeem('${k}','screen')">📺 ${screenDisp} screen time</button>
         <button class="btn" onclick="redeem('${k}','money')">💵 $${money} cash</button>
         ${total>=50?`<button class="btn btn-purple btn-sm" onclick="applySavingBonus('${k}')">⭐ Saving bonus</button>`:''}
