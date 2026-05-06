@@ -237,7 +237,16 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
   <div id="approvals-pin-wall"></div>
   <div id="approvals-content" style="display:none">
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-amber btn-sm" onclick="lockTab('approvals')">🔒 Lock</button></div>
-    <div class="card"><div class="section-header"><span class="section-icon">✅</span><div class="section-title" style="margin:0">Pending learning reports</div></div><div id="pending-approvals"></div></div>
+    <div class="card">
+      <div class="section-header"><span class="section-icon">🧹</span><div class="section-title" style="margin:0">Pending chores</div></div>
+      <div style="font-size:12px;color:#888;margin-bottom:12px">Bonus chores marked as done — approve to award points or reject to deny.</div>
+      <div id="pending-chores"></div>
+    </div>
+    <div class="card">
+      <div class="section-header"><span class="section-icon">📚</span><div class="section-title" style="margin:0">Pending learning reports</div></div>
+      <div style="font-size:12px;color:#888;margin-bottom:12px">Written reports submitted by the kids — review and approve to award points.</div>
+      <div id="pending-approvals"></div>
+    </div>
   </div>
 </div>
 
@@ -287,6 +296,31 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
       <div class="input-row"><div style="flex:1;font-size:13px">💵 Money</div><input type="number" id="money-rate" value="20" style="width:75px"><span style="font-size:12px;color:#888">pts = $1</span></div>
       <div class="input-row"><div style="flex:1;font-size:13px">❌ Penalty per miss</div><input type="number" id="penalty-pts" value="5" style="width:75px"><span style="font-size:12px;color:#888">pts lost</span></div>
       <button class="btn" onclick="saveRates()">Save settings</button>
+    </div>
+    <div class="card">
+      <div class="section-header"><span class="section-icon">✏️</span><div class="section-title" style="margin:0">Manual points editor</div></div>
+      <div style="font-size:12px;color:#888;margin-bottom:14px">Fix a mistake, correct a wrong award, or make any manual adjustment. All edits are logged.</div>
+      <div class="input-row">
+        <select id="edit-kid" style="flex:0 0 120px"></select>
+        <select id="edit-type" style="flex:0 0 130px">
+          <option value="chore">🧹 Chore pts</option>
+          <option value="learn">📚 Learning pts</option>
+        </select>
+        <select id="edit-action" style="flex:0 0 110px">
+          <option value="add">➕ Add</option>
+          <option value="subtract">➖ Subtract</option>
+          <option value="set">🎯 Set to</option>
+        </select>
+        <input type="number" id="edit-amount" placeholder="pts" style="width:75px" min="0">
+        <input type="text" id="edit-reason" placeholder="Reason (e.g. wrong chore awarded)" style="flex:2">
+        <button class="btn btn-amber" onclick="applyPointsEdit()">Apply</button>
+      </div>
+      <div id="edit-preview" style="font-size:12px;color:#888;margin-top:-6px;margin-bottom:10px"></div>
+      <div id="edit-log-wrap" style="display:none">
+        <div class="divider"></div>
+        <div class="subsection-title">📋 Edit log</div>
+        <div id="edit-log"></div>
+      </div>
     </div>
     <div class="card"><div class="section-header"><span class="section-icon">🎁</span><div class="section-title" style="margin:0">Redeem points</div></div><div id="redeem-section"></div></div>
     <div class="card"><div class="section-header"><span class="section-icon">🕓</span><div class="section-title" style="margin:0">Redemption history</div></div><div id="history-list"></div></div>
@@ -452,7 +486,7 @@ function load(){
       ['chorePoints','learnPoints','streak','weeklyDone','weeklyMissed','weeklyLearn','learnDone','bonusDone','missed'].forEach(f=>{if(p[f]===undefined)p[f]=0;});
       if(!p.theme)p.theme='pink';
     });
-    if(!s.learningLog)s.learningLog=[];if(!s.pendingReports)s.pendingReports=[];
+    if(!s.learningLog)s.learningLog=[];if(!s.pendingReports)s.pendingReports=[];if(!s.pendingChores)s.pendingChores=[];
     if(!s.reportPts)s.reportPts={...DEFAULT_REPORT_PTS};if(!s.goals)s.goals=[];
     if(!s.cotw)s.cotw={choreId:null,bonusPts:20};if(!s.streakSettings)s.streakSettings={bonusPts:25,doubleDay:''};
     if(!s.nextParticipantId)s.nextParticipantId=3;
@@ -536,7 +570,7 @@ function lockTab(tab){unlocked[tab]=false;updateLockStatus();showTab('dashboard'
 function updateLockStatus(){
   const ls=document.getElementById('lock-status');const any=Object.values(unlocked).some(v=>v);
   if(ls){ls.textContent=any?'🔓 Unlocked':'🔒 Locked';ls.style.color=any?'#0F6E56':'#888';}
-  const ab=document.getElementById('approval-badge');if(ab){const c=state.pendingReports.length;ab.textContent=c;ab.style.display=c>0?'inline':'none';}
+  const ab=document.getElementById('approval-badge');if(ab){const c=(state.pendingReports||[]).length+(state.pendingChores||[]).length;ab.textContent=c;ab.style.display=c>0?'inline':'none';}
 }
 
 // ─── CHORE DROPDOWN ───────────────────────────────────────────
@@ -585,17 +619,31 @@ function updateStreak(kid){
 function markDone(kid,choreId,type){
   const c=getChore(choreId);const p=state.participants[kid];if(!c||!p)return;
   const isBonus=type==='bonus'||type==='study-bonus';const isStudy=type==='study-required'||type==='study-bonus';const double=isDoubleDay();const isCOTW=state.cotw.choreId===choreId;
-  if(isBonus){let pts=c.pts*(double?2:1)+(isCOTW?state.cotw.bonusPts:0);if(isStudy){p.learnPoints=(p.learnPoints||0)+pts;p.learnDone=(p.learnDone||0)+1;p.weeklyLearn=(p.weeklyLearn||0)+1;}else{p.chorePoints=(p.chorePoints||0)+pts;p.bonusDone=(p.bonusDone||0)+1;}p.weeklyDone=(p.weeklyDone||0)+1;updateStreak(kid);}
-  else{p.chorePoints=(p.chorePoints||0)-state.rates.penalty;p.missed=(p.missed||0)+1;p.weeklyMissed=(p.weeklyMissed||0)+1;p.streak=0;}
-  save();render();
+  if(isBonus){
+    // Queue for parent approval instead of instant award
+    const pts=c.pts*(double?2:1)+(isCOTW?state.cotw.bonusPts:0);
+    if(!state.pendingChores)state.pendingChores=[];
+    state.pendingChores.push({id:Date.now(),kid,kidName:p.name,choreId,choreName:c.name,choreIcon:choreIcon(c.name),type,isStudy,pts,double,isCOTW,cotwBonus:isCOTW?state.cotw.bonusPts:0,date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString(),status:'pending'});
+    save();render();alert('⏳ '+p.name+' marked "'+c.name+'" as done!\nWaiting for parent approval to award '+pts+' pts.');
+  } else {
+    p.chorePoints=(p.chorePoints||0)-state.rates.penalty;p.missed=(p.missed||0)+1;p.weeklyMissed=(p.weeklyMissed||0)+1;p.streak=0;
+    save();render();
+  }
 }
 function awardBonusChore(){
   const kid=document.getElementById('quick-kid').value;const id=parseInt(document.getElementById('quick-chore').value);const c=getChore(id);const p=state.participants[kid];if(!c||!p)return;
-  const pts=c.pts*(isDoubleDay()?2:1);p.chorePoints=(p.chorePoints||0)+pts;p.bonusDone=(p.bonusDone||0)+1;updateStreak(kid);save();render();
-  const btn=event.target;btn.textContent='Awarded! 🎉';setTimeout(()=>btn.textContent='+ Award',1600);
+  const double=isDoubleDay();const pts=c.pts*(double?2:1);
+  if(!state.pendingChores)state.pendingChores=[];
+  state.pendingChores.push({id:Date.now(),kid,kidName:p.name,choreId:id,choreName:c.name,choreIcon:choreIcon(c.name),type:'bonus',isStudy:false,pts,double,isCOTW:false,cotwBonus:0,date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString(),status:'pending'});
+  save();render();
+  const btn=event.target;btn.textContent='Queued for approval ⏳';setTimeout(()=>btn.textContent='+ Award',1800);
 }
 function claimPoolChore(kid,id){
-  const c=getChore(id);const p=state.participants[kid];if(!c||!p)return;const isCOTW=state.cotw.choreId===id;const pts=c.pts*(isDoubleDay()?2:1)+(isCOTW?state.cotw.bonusPts:0);p.chorePoints=(p.chorePoints||0)+pts;p.bonusDone=(p.bonusDone||0)+1;updateStreak(kid);save();render();alert('🎉 '+p.name+' earned +'+pts+' pts for: '+c.name);
+  const c=getChore(id);const p=state.participants[kid];if(!c||!p)return;
+  const isCOTW=state.cotw.choreId===id;const double=isDoubleDay();const pts=c.pts*(double?2:1)+(isCOTW?state.cotw.bonusPts:0);
+  if(!state.pendingChores)state.pendingChores=[];
+  state.pendingChores.push({id:Date.now(),kid,kidName:p.name,choreId:id,choreName:c.name,choreIcon:choreIcon(c.name),type:'bonus',isStudy:false,pts,double,isCOTW,cotwBonus:isCOTW?state.cotw.bonusPts:0,date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString(),status:'pending'});
+  save();render();alert('⏳ '+p.name+' marked "'+c.name+'" as done!\nWaiting for parent approval to award '+pts+' pts.');
 }
 
 // ─── LEARNING ────────────────────────────────────────────────
@@ -624,6 +672,33 @@ function changePin(){const op=document.getElementById('old-pin').value;const np=
 
 // ─── REWARDS ─────────────────────────────────────────────────
 function saveRates(){state.rates.screen=parseInt(document.getElementById('screen-rate').value)||10;state.rates.money=parseInt(document.getElementById('money-rate').value)||20;state.rates.penalty=parseInt(document.getElementById('penalty-pts').value)||5;save();render();}
+function applyPointsEdit(){
+  const kid=document.getElementById("edit-kid").value;
+  const type=document.getElementById("edit-type").value;
+  const action=document.getElementById("edit-action").value;
+  const amount=parseInt(document.getElementById("edit-amount").value);
+  const reason=(document.getElementById("edit-reason").value||"").trim()||"Manual adjustment";
+  const p=state.participants[kid];
+  if(!p){alert("Please select a participant.");return;}
+  if(isNaN(amount)||amount<0){alert("Please enter a valid number of points.");return;}
+  const field=type==="chore"?"chorePoints":"learnPoints";
+  const before=p[field]||0;
+  let after;
+  if(action==="add")after=before+amount;
+  else if(action==="subtract")after=Math.max(0,before-amount);
+  else after=amount;
+  const diff=after-before;
+  const diffStr=(diff>=0?"+":"")+diff;
+  if(!confirm(p.name+"'s "+(type==="chore"?"chore":"learning")+" pts: "+before+" → "+after+" ("+diffStr+")\nReason: "+reason))return;
+  p[field]=after;
+  if(!state.pointsEdits)state.pointsEdits=[];
+  state.pointsEdits.push({date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString(),kid:p.name,type,action,amount,before,after,diff,reason});
+  document.getElementById("edit-amount").value="";
+  document.getElementById("edit-reason").value="";
+  const prev=document.getElementById("edit-preview");if(prev)prev.textContent="";
+  save();render();
+}
+
 function redeem(kid,type){const p=state.participants[kid];if(!p)return;const total=totalPts(kid);if(total<=0){alert('No points to redeem!');return;}const reward=type==='screen'?Math.floor(total/state.rates.screen)+'h screen time':'$'+(total/state.rates.money).toFixed(2)+' cash';if(!confirm('Redeem '+total+' points for '+p.name+' as '+reward+'?'))return;state.history.push({kid:p.name,reward,pts:total,type,date:new Date().toLocaleDateString()});['chorePoints','learnPoints','bonusDone','learnDone','missed','streak','weeklyDone','weeklyMissed','weeklyLearn'].forEach(f=>p[f]=0);save();render();}
 function resetKid(kid){const p=state.participants[kid];if(!p||!confirm('Reset '+p.name+"'s month?"))return;['chorePoints','learnPoints','bonusDone','learnDone','missed','streak','weeklyDone','weeklyMissed','weeklyLearn'].forEach(f=>p[f]=0);save();render();}
 
@@ -733,8 +808,30 @@ function renderReportCard(){
     return`<div class="report-card-box" style="background:${cs.bg};border:${cs.border}"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="display:flex;align-items:center;gap:12px">${kidSVG(p.theme,44)}<div style="font-size:16px;font-weight:700">${p.name}</div></div><div style="text-align:center"><div style="font-size:36px;font-weight:700;color:${gradeColor}">${grade}</div><div style="font-size:18px">${gradeEmoji}</div></div></div><div class="stat-grid"><div class="stat-cell"><div class="stat-num" style="color:#1D9E75">${p.weeklyDone||0}</div><div class="stat-lbl">✅ tasks done</div></div><div class="stat-cell"><div class="stat-num" style="color:#E24B4A">${p.weeklyMissed||0}</div><div class="stat-lbl">❌ missed</div></div><div class="stat-cell"><div class="stat-num" style="color:#185FA5">${p.weeklyLearn||0}</div><div class="stat-lbl">📚 reports</div></div></div><div style="margin-top:10px;font-size:12px;color:#555;display:flex;flex-direction:column;gap:4px"><div>💰 Total: <strong>${total} pts</strong></div><div>🔥 Streak: <strong>${p.streak||0} days</strong>${p.streak>=7?' — On fire! 🔥':p.streak>=3?' — Building! 💪':''}</div>${(p.weeklyMissed||0)===0?'<div style="color:#0F6E56">🌟 No points lost — amazing week!</div>':'<div style="color:#E24B4A">Lost '+((p.weeklyMissed||0)*state.rates.penalty)+' pts from misses</div>'}</div></div>`;}).join('');
 }
 
+function approveChore(id){
+  if(!state.pendingChores)return;
+  const idx=state.pendingChores.findIndex(c=>c.id===id);if(idx<0)return;
+  const item=state.pendingChores[idx];const p=state.participants[item.kid];if(!p)return;
+  if(item.isStudy){p.learnPoints=(p.learnPoints||0)+item.pts;p.learnDone=(p.learnDone||0)+1;p.weeklyLearn=(p.weeklyLearn||0)+1;}
+  else{p.chorePoints=(p.chorePoints||0)+item.pts;p.bonusDone=(p.bonusDone||0)+1;}
+  p.weeklyDone=(p.weeklyDone||0)+1;updateStreak(item.kid);
+  item.status='approved';state.pendingChores.splice(idx,1);save();render();
+}
+function rejectChore(id){
+  if(!state.pendingChores)return;
+  const idx=state.pendingChores.findIndex(c=>c.id===id);if(idx<0)return;
+  const item=state.pendingChores[idx];if(!confirm('Reject "'+item.choreName+'" for '+item.kidName+'? No points will be awarded.'))return;
+  state.pendingChores.splice(idx,1);save();render();
+}
 function renderApprovals(){
-  if(!unlocked.approvals)return;const el=document.getElementById('pending-approvals');if(!el)return;
+  if(!unlocked.approvals)return;
+  const pendingChores=state.pendingChores||[];
+  const pc=document.getElementById('pending-chores');
+  if(pc){pc.innerHTML=pendingChores.length===0?'<div style="font-size:13px;color:#888;text-align:center;padding:16px">✅ No pending chores — all clear!</div>':
+    pendingChores.map(item=>{const p=state.participants[item.kid];const theme=p?p.theme:'pink';
+      return`<div class="approval-row"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">${kidSVG(theme,30)}<div><div style="font-size:13px;font-weight:600">${item.choreIcon} ${item.choreName}${item.isCOTW?' ⭐':''}</div><div style="font-size:11px;color:#888">${item.kidName} · ${item.date} ${item.time} · <strong>+${item.pts} pts</strong>${item.double?' (2× day!)':''}${item.isCOTW?' (+'+item.cotwBonus+' COTW bonus)':''}</div></div></div><div style="display:flex;gap:8px"><button class="btn btn-green btn-sm" onclick="approveChore(${item.id})">✅ Approve +${item.pts} pts</button><button class="btn btn-red btn-sm" onclick="rejectChore(${item.id})">❌ Reject</button></div></div>`;}).join('');}
+
+  const el=document.getElementById('pending-approvals');if(!el)return;
   el.innerHTML=state.pendingReports.map(r=>`<div class="approval-row"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">${kidSVG(state.participants[r.kid]?.theme||'pink',30)}<div><div style="font-size:13px;font-weight:600">${r.title}</div><div style="font-size:11px;color:#888">${r.kidName} · ${r.typeLabel} · ${r.date} · <strong>+${r.pts} pts</strong></div></div></div><div style="font-size:12px;color:#555;margin-bottom:10px;background:#fff;border-radius:10px;padding:8px 10px;border:1.5px solid #f0f0f0">"${r.summary}"</div><div style="display:flex;gap:8px"><button class="btn btn-green btn-sm" onclick="approveReport(${r.id})">✅ Approve +${r.pts} pts</button><button class="btn btn-red btn-sm" onclick="rejectReport(${r.id})">↩️ Send back</button></div></div>`).join('')||'<div style="font-size:13px;color:#888;text-align:center;padding:16px">✅ No pending reports — all clear!</div>';
 }
 
@@ -752,8 +849,37 @@ function renderManage(){
 function renderRewards(){
   if(!unlocked.rewards)return;const ids=pIds();
   const sr=document.getElementById('screen-rate');const mr=document.getElementById('money-rate');const pp=document.getElementById('penalty-pts');if(sr)sr.value=state.rates.screen;if(mr)mr.value=state.rates.money;if(pp)pp.value=state.rates.penalty;
+
+  // populate edit-kid dropdown
+  const ek=document.getElementById('edit-kid');if(ek)ek.innerHTML=ids.map(k=>`<option value="${k}">${state.participants[k].name}</option>`).join('');
+  // wire up live preview
+  ['edit-kid','edit-type','edit-action','edit-amount'].forEach(id=>{const el=document.getElementById(id);if(el)el.oninput=updateEditPreview;});
+
+  // edit log
+  const edits=state.pointsEdits||[];
+  const elw=document.getElementById('edit-log-wrap');const elog=document.getElementById('edit-log');
+  if(elw)elw.style.display=edits.length>0?'block':'none';
+  if(elog){elog.innerHTML=edits.length===0?'':edits.slice().reverse().map(e=>{const diffStr=(e.diff>=0?'+':'')+e.diff;const color=e.diff>=0?'#0F6E56':'#A32D2D';return`<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #f5f5f5"><div><div style="font-size:13px;font-weight:600">${e.kid} — ${e.type==='chore'?'🧹 chore':'📚 learning'} pts <span style="color:${color};font-weight:700">${diffStr}</span> → ${e.after}</div><div style="font-size:11px;color:#888;margin-top:2px">📝 ${e.reason}</div><div style="font-size:10px;color:#bbb;margin-top:1px">${e.date} ${e.time}</div></div></div>`;}).join('');}
+
   const rs=document.getElementById('redeem-section');if(rs){rs.innerHTML=ids.map(k=>{const p=state.participants[k];const total=totalPts(k);const cp=p.chorePoints||0;const lp=p.learnPoints||0;return`<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #f5f5f5"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">${kidSVG(p.theme,36)}<div><div style="font-size:14px;font-weight:700">${p.name}</div><div style="font-size:11px;color:#888">🧹 ${cp} chore + 📚 ${lp} learning = <strong>${total} pts</strong></div></div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-green" onclick="redeem('${k}','screen')">📺 ${Math.floor(total/state.rates.screen)}h screen time</button><button class="btn" onclick="redeem('${k}','money')">💵 $${(total/state.rates.money).toFixed(2)} cash</button><button class="btn btn-red btn-sm" onclick="resetKid('${k}')">🔄 Reset month</button></div></div>`;}).join('');}
   const hl=document.getElementById('history-list');if(hl){hl.innerHTML=state.history.length===0?'<div style="font-size:13px;color:#888;text-align:center;padding:16px">📜 No redemptions yet</div>':state.history.slice().reverse().map(h=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5"><div><div style="font-size:13px;font-weight:600">${h.kid} — ${h.reward}</div><div style="font-size:11px;color:#888">${h.date} · ${h.pts} pts</div></div><span class="badge ${h.type==='screen'?'badge-purple':'badge-amber'}">${h.type==='screen'?'📺 screen':'💵 cash'}</span></div>`).join('');}
+}
+
+function updateEditPreview(){
+  const kid=document.getElementById('edit-kid').value;
+  const type=document.getElementById('edit-type').value;
+  const action=document.getElementById('edit-action').value;
+  const amount=parseInt(document.getElementById('edit-amount').value);
+  const p=state.participants[kid];if(!p||isNaN(amount))return;
+  const field=type==='chore'?'chorePoints':'learnPoints';
+  const before=p[field]||0;
+  let after;
+  if(action==='add')after=before+amount;
+  else if(action==='subtract')after=Math.max(0,before-amount);
+  else after=amount;
+  const diff=after-before;
+  const el=document.getElementById('edit-preview');
+  if(el){el.textContent=`Preview: ${p.name}'s ${type} pts ${before} → ${after} (${diff>=0?'+':''}${diff})`;el.style.color=diff>=0?'#0F6E56':'#A32D2D';}
 }
 
 function renderSettings(){
