@@ -257,13 +257,40 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-amber btn-sm" onclick="lockTab('manage')">🔒 Lock</button></div>
     <div class="card">
       <div class="section-title">➕ Add chore / study task</div>
+      <!-- Row 1: name picker + type -->
+      <div class="input-row" style="margin-bottom:8px">
+        <div class="chore-picker" id="manage-picker-wrap" style="flex:2">
+          <input type="text" id="manage-chore-input" placeholder="Type a name or pick from list below..." autocomplete="off"
+            oninput="filterDropdown('manage');syncIconFromName()" onfocus="openDropdown('manage')" onblur="scheduleClose('manage')" style="width:100%">
+          <div class="chore-dropdown" id="manage-dropdown"></div>
+        </div>
+        <select id="new-chore-type" style="flex:0 0 135px" onchange="togglePtsInput()">
+          <option value="responsibility">🛡️ Responsibility</option>
+          <option value="bonus">⭐ Bonus chore</option>
+          <option value="study-required">📝 Homework</option>
+          <option value="study-bonus">🌟 Learning bonus</option>
+        </select>
+      </div>
+      <!-- Row 2: icon picker + difficulty + pts + add -->
+      <div class="input-row" style="margin-bottom:8px;align-items:center">
+        <div style="font-size:11px;color:#888;flex:0 0 auto">Icon:</div>
+        <div id="icon-picker" style="display:flex;gap:4px;flex-wrap:wrap;flex:1;align-items:center">
+          <!-- populated by JS -->
+        </div>
+        <input type="hidden" id="new-chore-icon" value="">
+      </div>
       <div class="input-row">
-        <div class="chore-picker" id="manage-picker-wrap"><input type="text" id="manage-chore-input" placeholder="Type or pick..." autocomplete="off" oninput="filterDropdown('manage')" onfocus="openDropdown('manage')" onblur="scheduleClose('manage')"><div class="chore-dropdown" id="manage-dropdown"></div></div>
-        <select id="new-chore-type" style="flex:0 0 125px" onchange="togglePtsInput()"><option value="responsibility">Responsibility</option><option value="bonus">Bonus chore</option><option value="study-required">Homework</option><option value="study-bonus">Learning bonus</option></select>
-        <select id="new-chore-diff" style="flex:0 0 85px" onchange="togglePtsInput()"><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>
-        <input type="number" id="new-chore-pts" placeholder="pts" style="width:60px" min="0" value="0">
+        <select id="new-chore-diff" style="flex:0 0 105px" onchange="togglePtsInput()">
+          <option value="easy">🟢 Easy</option>
+          <option value="medium">🟡 Medium</option>
+          <option value="hard">🔴 Hard</option>
+        </select>
+        <div style="font-size:12px;color:#888;flex:0 0 auto">Pts:</div>
+        <input type="number" id="new-chore-pts" placeholder="auto" style="width:70px" min="0">
+        <div id="pts-hint" style="font-size:11px;color:#888;flex:1"></div>
         <button class="btn btn-green" onclick="addChoreFromPicker()">+ Add</button>
       </div>
+      <div style="font-size:11px;color:#888;margin-top:-4px">Points auto-fill based on type + difficulty. Override if needed.</div>
     </div>
     <div class="card"><div class="subsection-title">🛡️ Responsibilities</div><div id="resp-list"></div></div>
     <div class="card"><div class="subsection-title">⭐ Bonus chores</div><div id="bonus-list"></div></div>
@@ -292,9 +319,15 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-amber btn-sm" onclick="lockTab('rewards')">🔒 Lock</button></div>
     <div class="card">
       <div class="section-header"><span class="section-icon">⚙️</span><div class="section-title" style="margin:0">Redemption settings</div></div>
-      <div class="input-row"><div style="flex:1;font-size:13px">📺 Screen time</div><input type="number" id="screen-rate" value="10" style="width:75px"><span style="font-size:12px;color:#888">pts = 1 hour</span></div>
-      <div class="input-row"><div style="flex:1;font-size:13px">💵 Money</div><input type="number" id="money-rate" value="20" style="width:75px"><span style="font-size:12px;color:#888">pts = $1</span></div>
+      <div style="font-size:12px;color:#888;margin-bottom:10px;background:#f8f7ff;border-radius:10px;padding:10px">
+        <strong>Default system:</strong> 1 hour effort ≈ 10 pts · 10 pts = 30 min screen time · 10 pts = $1
+      </div>
+      <div class="input-row"><div style="flex:1;font-size:13px">📺 Screen time</div><input type="number" id="screen-rate" value="10" style="width:75px"><span style="font-size:12px;color:#888">pts = 30 min</span></div>
+      <div class="input-row"><div style="flex:1;font-size:13px">💵 Money</div><input type="number" id="money-rate" value="10" style="width:75px"><span style="font-size:12px;color:#888">pts = $1</span></div>
       <div class="input-row"><div style="flex:1;font-size:13px">❌ Penalty per miss</div><input type="number" id="penalty-pts" value="5" style="width:75px"><span style="font-size:12px;color:#888">pts lost</span></div>
+      <div style="font-size:12px;font-weight:600;color:#333;margin:10px 0 6px">💰 Savings bonuses</div>
+      <div class="input-row"><div style="flex:1;font-size:13px">Save 50 pts →</div><input type="number" id="saving-bonus-50" value="3" style="width:65px"><span style="font-size:12px;color:#888">bonus pts</span></div>
+      <div class="input-row"><div style="flex:1;font-size:13px">Save 100 pts →</div><input type="number" id="saving-bonus-100" value="5" style="width:65px"><span style="font-size:12px;color:#888">bonus pts</span></div>
       <button class="btn" onclick="saveRates()">Save settings</button>
     </div>
     <div class="card">
@@ -388,8 +421,17 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 <script>
 // ─── CONSTANTS ───────────────────────────────────────────────
 const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-const DIFF_PTS={easy:10,medium:20,hard:35};
-const DEFAULT_REPORT_PTS={book:40,ted:25,documentary:30,'online-lesson':35,podcast:20,article:15,other:20};
+const DIFF_PTS={
+  responsibility:{easy:0,medium:0,hard:0},
+  bonus:{easy:7,medium:15,hard:30},
+  'study-required':{easy:0,medium:0,hard:0},
+  'study-bonus':{easy:7,medium:15,hard:30}
+};
+function getDiffPts(type,diff){
+  const map=DIFF_PTS[type];
+  return map?map[diff]||0:0;
+}
+const DEFAULT_REPORT_PTS={book:35,ted:15,documentary:20,'online-lesson':20,podcast:10,article:10,other:15};
 const SITE_PASSWORD='1216';
 
 const THEME_CONFIG={
@@ -459,7 +501,7 @@ let state={
     {id:11,name:'Read extra book chapter',type:'study-bonus',pts:10,diff:'easy'},
   ],
   calendar:{Monday:[1,2,5],Tuesday:[1,3,5],Wednesday:[1,2,5],Thursday:[1,3,5],Friday:[1,2,4,5],Saturday:[2],Sunday:[2]},
-  rates:{screen:10,money:20,penalty:5},
+  rates:{screen:10,money:10,penalty:5,savingBonus50:3,savingBonus100:5},
   reportPts:{...DEFAULT_REPORT_PTS},
   learningLog:[],pendingReports:[],goals:[],history:[],
   cotw:{choreId:null,bonusPts:20},
@@ -497,7 +539,7 @@ load();
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function totalPts(k){const p=state.participants[k];return(p.chorePoints||0)+(p.learnPoints||0);}
-function choreIcon(name){return CHORE_ICONS[name]||'✅';}
+function choreIcon(name,customIcon){return customIcon||CHORE_ICONS[name]||'✅';}
 function isDoubleDay(){if(!state.streakSettings.doubleDay)return false;const d=new Date().getDay();return DAYS[d===0?6:d-1]===state.streakSettings.doubleDay;}
 function getChore(id){return state.chores.find(c=>c.id===id);}
 function addedNames(){return state.chores.map(c=>c.name.toLowerCase());}
@@ -591,16 +633,58 @@ function pickSuggestion(ctx,name,type,diff){
   clearTimeout(dropdownClose[ctx]);
   const inp=document.getElementById(ctx+'-chore-input');if(inp)inp.value=name;
   const dd=document.getElementById(ctx+'-dropdown');if(dd)dd.classList.remove('open');
-  if(ctx==='manage'){const s=document.getElementById('new-chore-type');if(s)s.value=type;const ds=document.getElementById('new-chore-diff');if(ds)ds.value=diff||'easy';togglePtsInput();}
+  if(ctx==='manage'){
+    const s=document.getElementById('new-chore-type');if(s)s.value=type;
+    const ds=document.getElementById('new-chore-diff');if(ds)ds.value=diff||'easy';
+    const ic=document.getElementById('new-chore-icon');if(ic)ic.value=choreIcon(name);
+    togglePtsInput();
+  }
   if(ctx==='cal'){const s=document.getElementById('cal-type-sel');if(s)s.value=type;}
 }
-function togglePtsInput(){const t=document.getElementById('new-chore-type').value;const d=document.getElementById('new-chore-diff').value;const p=document.getElementById('new-chore-pts');if(p)p.value=(t==='responsibility'||t==='study-required')?0:DIFF_PTS[d||'easy'];}
+function togglePtsInput(){
+  const t=document.getElementById('new-chore-type').value;
+  const d=document.getElementById('new-chore-diff').value||'easy';
+  const p=document.getElementById('new-chore-pts');
+  const hint=document.getElementById('pts-hint');
+  const pts=getDiffPts(t,d);
+  if(p)p.value=pts;
+  if(hint){
+    const ranges={bonus:{easy:'5–10 pts (~15–30 min)',medium:'10–20 pts (~30–60 min)',hard:'20–40 pts (~1–2+ hrs)'},'study-bonus':{easy:'5–10 pts',medium:'10–20 pts',hard:'20–40 pts'}};
+    const r=ranges[t]?ranges[t][d]:'';
+    hint.textContent=r?'Suggested: '+r:(t==='responsibility'||t==='study-required')?'No pts — penalty only':'';
+  }
+  renderIconPicker(t,d);
+}
+function renderIconPicker(type,diff){
+  const container=document.getElementById('icon-picker');if(!container)return;
+  const allIcons=['🛏️','🧹','👕','🚿','🪥','🚽','🫧','🧴','🍽️','🍳','🫙','✨','🧽','🗑️','🥪','🧊','💧','🛒','🥗','🧺','👔','🌬️','🌀','🏠','♻️','🥫','💡','🪟','📦','🌿','🌱','🍂','🐾','🦮','🐶','🐱','❄️','🌾','🚗','🌺','🍃','📝','📚','🎵','📖','🎒','📁','✏️','🎤','💻','✍️','🔬','🎧','📓','🧪','🌍','🎬','🎨','📰','🖥️','🏛️','🔴','🪣','🐳','🐢','🦉'];
+  const currentIcon=document.getElementById('new-chore-icon').value||'✅';
+  container.innerHTML=allIcons.map(ic=>`<button type="button" onclick="selectIcon('${ic}')" style="font-size:18px;width:34px;height:34px;border-radius:8px;border:2px solid ${ic===currentIcon?'#534AB7':'#e0e0e0'};background:${ic===currentIcon?'#EEEDFE':'#fff'};cursor:pointer;transition:all .15s" title="${ic}">${ic}</button>`).join('');
+}
+function selectIcon(ic){
+  document.getElementById('new-chore-icon').value=ic;
+  renderIconPicker(document.getElementById('new-chore-type').value,document.getElementById('new-chore-diff').value);
+}
+function syncIconFromName(){
+  const name=document.getElementById('manage-chore-input').value.trim();
+  const icon=CHORE_ICONS[name];
+  if(icon){document.getElementById('new-chore-icon').value=icon;renderIconPicker(document.getElementById('new-chore-type').value,document.getElementById('new-chore-diff').value);}
+}
 
 // ─── CHORE ACTIONS ────────────────────────────────────────────
 function addChoreFromPicker(){
-  const name=(document.getElementById('manage-chore-input').value||'').trim();const type=document.getElementById('new-chore-type').value;const diff=document.getElementById('new-chore-diff').value;const pts=parseInt(document.getElementById('new-chore-pts').value)||0;
-  if(!name)return;if(state.chores.find(c=>c.name.toLowerCase()===name.toLowerCase())){alert('"'+name+'" already exists.');return;}
-  state.chores.push({id:state.nextId++,name,type,pts,diff});document.getElementById('manage-chore-input').value='';save();render();
+  const name=(document.getElementById('manage-chore-input').value||'').trim();
+  const type=document.getElementById('new-chore-type').value;
+  const diff=document.getElementById('new-chore-diff').value||'easy';
+  const ptsInput=document.getElementById('new-chore-pts').value;
+  const pts=ptsInput!==''?parseInt(ptsInput):getDiffPts(type,diff);
+  const icon=document.getElementById('new-chore-icon').value||choreIcon(name);
+  if(!name)return;
+  if(state.chores.find(c=>c.name.toLowerCase()===name.toLowerCase())){alert('"'+name+'" already exists.');return;}
+  state.chores.push({id:state.nextId++,name,type,pts,diff,icon});
+  document.getElementById('manage-chore-input').value='';
+  document.getElementById('new-chore-icon').value='';
+  save();render();
 }
 function addToCalendarFromPicker(){
   const day=document.getElementById('add-day-sel').value;const name=(document.getElementById('cal-chore-input').value||'').trim();const type=document.getElementById('cal-type-sel').value;
@@ -623,7 +707,7 @@ function markDone(kid,choreId,type){
     // Queue for parent approval instead of instant award
     const pts=c.pts*(double?2:1)+(isCOTW?state.cotw.bonusPts:0);
     if(!state.pendingChores)state.pendingChores=[];
-    state.pendingChores.push({id:Date.now(),kid,kidName:p.name,choreId,choreName:c.name,choreIcon:choreIcon(c.name),type,isStudy,pts,double,isCOTW,cotwBonus:isCOTW?state.cotw.bonusPts:0,date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString(),status:'pending'});
+    state.pendingChores.push({id:Date.now(),kid,kidName:p.name,choreId,choreName:c.name,choreIcon:choreIcon(c.name,c.icon),type,isStudy,pts,double,isCOTW,cotwBonus:isCOTW?state.cotw.bonusPts:0,date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString(),status:'pending'});
     save();render();alert('⏳ '+p.name+' marked "'+c.name+'" as done!\nWaiting for parent approval to award '+pts+' pts.');
   } else {
     p.chorePoints=(p.chorePoints||0)-state.rates.penalty;p.missed=(p.missed||0)+1;p.weeklyMissed=(p.weeklyMissed||0)+1;p.streak=0;
@@ -634,7 +718,7 @@ function awardBonusChore(){
   const kid=document.getElementById('quick-kid').value;const id=parseInt(document.getElementById('quick-chore').value);const c=getChore(id);const p=state.participants[kid];if(!c||!p)return;
   const double=isDoubleDay();const pts=c.pts*(double?2:1);
   if(!state.pendingChores)state.pendingChores=[];
-  state.pendingChores.push({id:Date.now(),kid,kidName:p.name,choreId:id,choreName:c.name,choreIcon:choreIcon(c.name),type:'bonus',isStudy:false,pts,double,isCOTW:false,cotwBonus:0,date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString(),status:'pending'});
+  state.pendingChores.push({id:Date.now(),kid,kidName:p.name,choreId:id,choreName:c.name,choreIcon:choreIcon(c.name,c.icon),type:'bonus',isStudy:false,pts,double,isCOTW:false,cotwBonus:0,date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString(),status:'pending'});
   save();render();
   const btn=event.target;btn.textContent='Queued for approval ⏳';setTimeout(()=>btn.textContent='+ Award',1800);
 }
@@ -642,7 +726,7 @@ function claimPoolChore(kid,id){
   const c=getChore(id);const p=state.participants[kid];if(!c||!p)return;
   const isCOTW=state.cotw.choreId===id;const double=isDoubleDay();const pts=c.pts*(double?2:1)+(isCOTW?state.cotw.bonusPts:0);
   if(!state.pendingChores)state.pendingChores=[];
-  state.pendingChores.push({id:Date.now(),kid,kidName:p.name,choreId:id,choreName:c.name,choreIcon:choreIcon(c.name),type:'bonus',isStudy:false,pts,double,isCOTW,cotwBonus:isCOTW?state.cotw.bonusPts:0,date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString(),status:'pending'});
+  state.pendingChores.push({id:Date.now(),kid,kidName:p.name,choreId:id,choreName:c.name,choreIcon:choreIcon(c.name,c.icon),type:'bonus',isStudy:false,pts,double,isCOTW,cotwBonus:isCOTW?state.cotw.bonusPts:0,date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString(),status:'pending'});
   save();render();alert('⏳ '+p.name+' marked "'+c.name+'" as done!\nWaiting for parent approval to award '+pts+' pts.');
 }
 
@@ -671,7 +755,14 @@ function saveReportPts(){['book','ted','documentary','online-lesson','podcast','
 function changePin(){const op=document.getElementById('old-pin').value;const np=document.getElementById('new-pin').value;const msg=document.getElementById('pin-change-msg');if(op!==state.pin){msg.style.color='#E24B4A';msg.textContent='Current PIN incorrect.';return;}if(!/^\d{4}$/.test(np)){msg.style.color='#E24B4A';msg.textContent='Must be exactly 4 digits.';return;}state.pin=np;save();msg.style.color='#0F6E56';msg.textContent='PIN updated! ✅';document.getElementById('old-pin').value='';document.getElementById('new-pin').value='';setTimeout(()=>msg.textContent='',2500);}
 
 // ─── REWARDS ─────────────────────────────────────────────────
-function saveRates(){state.rates.screen=parseInt(document.getElementById('screen-rate').value)||10;state.rates.money=parseInt(document.getElementById('money-rate').value)||20;state.rates.penalty=parseInt(document.getElementById('penalty-pts').value)||5;save();render();}
+function saveRates(){
+  state.rates.screen=parseInt(document.getElementById('screen-rate').value)||10;
+  state.rates.money=parseInt(document.getElementById('money-rate').value)||10;
+  state.rates.penalty=parseInt(document.getElementById('penalty-pts').value)||5;
+  state.rates.savingBonus50=parseInt(document.getElementById('saving-bonus-50').value)||3;
+  state.rates.savingBonus100=parseInt(document.getElementById('saving-bonus-100').value)||5;
+  save();render();
+}
 function applyPointsEdit(){
   const kid=document.getElementById("edit-kid").value;
   const type=document.getElementById("edit-type").value;
@@ -699,7 +790,24 @@ function applyPointsEdit(){
   save();render();
 }
 
-function redeem(kid,type){const p=state.participants[kid];if(!p)return;const total=totalPts(kid);if(total<=0){alert('No points to redeem!');return;}const reward=type==='screen'?Math.floor(total/state.rates.screen)+'h screen time':'$'+(total/state.rates.money).toFixed(2)+' cash';if(!confirm('Redeem '+total+' points for '+p.name+' as '+reward+'?'))return;state.history.push({kid:p.name,reward,pts:total,type,date:new Date().toLocaleDateString()});['chorePoints','learnPoints','bonusDone','learnDone','missed','streak','weeklyDone','weeklyMissed','weeklyLearn'].forEach(f=>p[f]=0);save();render();}
+function applySavingBonus(kid){
+  const p=state.participants[kid];if(!p)return;
+  const total=totalPts(kid);
+  const b50=state.rates.savingBonus50||3;const b100=state.rates.savingBonus100||5;
+  if(total>=100){
+    if(!confirm('Claim +'+b100+' bonus pts for saving 100+ pts?'))return;
+    p.chorePoints=(p.chorePoints||0)+b100;
+    if(!state.pointsEdits)state.pointsEdits=[];
+    state.pointsEdits.push({date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString(),kid:p.name,type:'chore',action:'add',amount:b100,before:p.chorePoints-b100,after:p.chorePoints,diff:b100,reason:'Saving bonus (100+ pts)'});
+  } else if(total>=50){
+    if(!confirm('Claim +'+b50+' bonus pts for saving 50+ pts?'))return;
+    p.chorePoints=(p.chorePoints||0)+b50;
+    if(!state.pointsEdits)state.pointsEdits=[];
+    state.pointsEdits.push({date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString(),kid:p.name,type:'chore',action:'add',amount:b50,before:p.chorePoints-b50,after:p.chorePoints,diff:b50,reason:'Saving bonus (50+ pts)'});
+  } else {alert('Need at least 50 pts to claim a saving bonus.');}
+  save();render();
+}
+function redeem(kid,type){const p=state.participants[kid];if(!p)return;const total=totalPts(kid);if(total<=0){alert('No points to redeem!');return;}const reward=type==='screen'?(total/state.rates.screen*30)+'min screen time':'$'+(total/state.rates.money).toFixed(2)+' cash';if(!confirm('Redeem '+total+' points for '+p.name+' as '+reward+'?'))return;state.history.push({kid:p.name,reward,pts:total,type,date:new Date().toLocaleDateString()});['chorePoints','learnPoints','bonusDone','learnDone','missed','streak','weeklyDone','weeklyMissed','weeklyLearn'].forEach(f=>p[f]=0);save();render();}
 function resetKid(kid){const p=state.participants[kid];if(!p||!confirm('Reset '+p.name+"'s month?"))return;['chorePoints','learnPoints','bonusDone','learnDone','missed','streak','weeklyDone','weeklyMissed','weeklyLearn'].forEach(f=>p[f]=0);save();render();}
 
 // ─── SETTINGS ────────────────────────────────────────────────
@@ -750,7 +858,7 @@ function renderDashboard(){
   }
 
   const cotw=state.cotw;const cotwEl=document.getElementById('cotw-banner');
-  if(cotwEl){if(cotw.choreId){const c=getChore(cotw.choreId);cotwEl.innerHTML=c?`<div style="background:linear-gradient(135deg,#EEEDFE,#E6F1FB);border:2px solid #AFA9EC;border-radius:16px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:10px;font-weight:700;color:#3C3489;text-transform:uppercase;letter-spacing:.05em">⭐ Chore of the week</div><div style="font-size:15px;font-weight:600;margin-top:3px">${choreIcon(c.name)} ${c.name}</div></div><span class="badge badge-purple">+${cotw.bonusPts} bonus pts</span></div>`:'';}else cotwEl.innerHTML='';}
+  if(cotwEl){if(cotw.choreId){const c=getChore(cotw.choreId);cotwEl.innerHTML=c?`<div style="background:linear-gradient(135deg,#EEEDFE,#E6F1FB);border:2px solid #AFA9EC;border-radius:16px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:10px;font-weight:700;color:#3C3489;text-transform:uppercase;letter-spacing:.05em">⭐ Chore of the week</div><div style="font-size:15px;font-weight:600;margin-top:3px">${choreIcon(c.name,c.icon)} ${c.name}</div></div><span class="badge badge-purple">+${cotw.bonusPts} bonus pts</span></div>`:'';}else cotwEl.innerHTML='';}
   const double=isDoubleDay();const ddEl=document.getElementById('double-day-banner');
   if(ddEl)ddEl.innerHTML=double?`<div style="background:linear-gradient(135deg,#FAEEDA,#EAF3DE);border:2px solid #EF9F27;border-radius:16px;padding:10px 16px;margin-bottom:12px;font-size:13px;font-weight:600;color:#633806;text-align:center">🎉 Double points day! All bonus chores earn 2× today!</div>`:'';
 
@@ -760,7 +868,7 @@ function renderDashboard(){
   todayDiv.innerHTML=todayChores.length===0?'<div style="color:#888;font-size:13px;text-align:center;padding:16px">🎉 Nothing scheduled — enjoy the break!</div>':
     todayChores.map(c=>{const isBonus=c.type==='bonus'||c.type==='study-bonus';const isCOTW=cotw.choreId===c.id;const tc=TYPE_COLORS[c.type]||TYPE_COLORS.responsibility;
       return`<div style="display:flex;align-items:center;gap:10px;background:${tc.bg};border-radius:12px;padding:10px 12px;margin-bottom:6px;border:1.5px solid ${tc.border}">
-        <span style="font-size:20px">${choreIcon(c.name)}</span>
+        <span style="font-size:20px">${choreIcon(c.name,c.icon)}</span>
         <div style="flex:1"><div style="font-size:13px;font-weight:600;color:${tc.text}">${c.name}${isCOTW?' ⭐':''}</div><div style="font-size:10px;color:${tc.text};opacity:.8">${isBonus?'+'+(double?c.pts*2:c.pts)+(isCOTW?'+'+cotw.bonusPts:'')+' pts':'Required — miss = -'+state.rates.penalty+' pts'}</div></div>
         <div style="display:flex;gap:5px;flex-wrap:wrap">${ids.map(k=>`<button class="btn btn-sm btn-${isBonus?'green':'red'}" onclick="markDone('${k}',${c.id},'${c.type}')" style="display:flex;align-items:center;gap:3px"><span style="font-size:13px">${kidSVG(state.participants[k].theme,16)}</span><span>${state.participants[k].name}</span></button>`).join('')}</div>
       </div>`;}).join('');
@@ -768,25 +876,25 @@ function renderDashboard(){
   document.getElementById('current-month').textContent=new Date().toLocaleString('default',{month:'long',year:'numeric'});
   document.getElementById('reward-progress').innerHTML=ids.map(k=>{const p=state.participants[k];const total=totalPts(k);const cp=p.chorePoints||0;const lp=p.learnPoints||0;const tc=THEME_CONFIG[p.theme]||THEME_CONFIG.pink;
     return`<div style="margin-bottom:12px;background:#fff;border-radius:12px;padding:12px;border:1.5px solid #f0f0f0">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div style="flex-shrink:0">${kidSVG(p.theme,30)}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${p.name}</div><div style="font-size:11px;color:#888">${Math.floor(total/state.rates.screen)}h screen OR $${(total/state.rates.money).toFixed(2)}</div></div><div style="text-align:right"><div style="font-size:20px;font-weight:700">${total}</div><div style="font-size:10px;color:#888">pts total</div></div></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div style="flex-shrink:0">${kidSVG(p.theme,30)}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${p.name}</div><div style="font-size:11px;color:#888">${(()=>{const m=total*(state.rates.screen?30/state.rates.screen:3);return m>=60?Math.floor(m/60)+'h '+(m%60?Math.round(m%60)+'min':''):Math.round(m)+'min';})()  } screen OR $${(total/state.rates.money).toFixed(2)}</div></div><div style="text-align:right"><div style="font-size:20px;font-weight:700">${total}</div><div style="font-size:10px;color:#888">pts total</div></div></div>
       <div style="display:flex;height:9px;border-radius:99px;overflow:hidden;background:#f0f0f0"><div style="width:${Math.min(100,cp/2)}%;background:${tc.barColor}"></div><div style="width:${Math.min(60,lp/2)}%;background:${tc.learnColor}"></div></div>
       <div style="display:flex;gap:10px;margin-top:4px;font-size:10px;color:#888"><span>🧹 ${cp} chore</span><span>📚 ${lp} learning</span></div>
     </div>`;}).join('');
 
   const qk=document.getElementById('quick-kid');const qc=document.getElementById('quick-chore');
   if(qk)qk.innerHTML=ids.map(k=>`<option value="${k}">${state.participants[k].name}</option>`).join('');
-  if(qc){const bonus=state.chores.filter(c=>c.type==='bonus');qc.innerHTML=bonus.map(c=>`<option value="${c.id}">${choreIcon(c.name)} ${c.name} (${c.pts}pts)</option>`).join('');}
+  if(qc){const bonus=state.chores.filter(c=>c.type==='bonus');qc.innerHTML=bonus.map(c=>`<option value="${c.id}">${choreIcon(c.name,c.icon)} ${c.name} (${c.pts}pts)</option>`).join('');}
 }
 
 function renderWeekly(){
   const grid=document.getElementById('week-grid');if(!grid)return;
-  grid.innerHTML=DAYS.map(d=>{const tasks=(state.calendar[d]||[]).map(id=>getChore(id)).filter(Boolean);return`<div class="day-col"><div class="day-name">${d.slice(0,3)}</div>${tasks.map(c=>`<div class="day-task ${c.type}" onclick="removeFromCalendar('${d}',${c.id})" title="tap to remove">${choreIcon(c.name)} ${c.name.length>11?c.name.slice(0,10)+'…':c.name}</div>`).join('')}<div style="font-size:8px;color:#bbb;margin-top:3px;text-align:center">tap to remove</div></div>`;}).join('');
+  grid.innerHTML=DAYS.map(d=>{const tasks=(state.calendar[d]||[]).map(id=>getChore(id)).filter(Boolean);return`<div class="day-col"><div class="day-name">${d.slice(0,3)}</div>${tasks.map(c=>`<div class="day-task ${c.type}" onclick="removeFromCalendar('${d}',${c.id})" title="tap to remove">${choreIcon(c.name,c.icon)} ${c.name.length>11?c.name.slice(0,10)+'…':c.name}</div>`).join('')}<div style="font-size:8px;color:#bbb;margin-top:3px;text-align:center">tap to remove</div></div>`;}).join('');
 }
 
 function renderPool(){
   const div=document.getElementById('pool-list');if(!div)return;const ids=pIds();const bonus=state.chores.filter(c=>c.type==='bonus');const diffLabel={easy:'🟢 Easy',medium:'🟡 Medium',hard:'🔴 Hard'};
   div.innerHTML=bonus.length===0?'<div style="font-size:13px;color:#888">No bonus chores yet — add some in Manage.</div>':
-    bonus.map(c=>`<div class="pool-row"><span style="font-size:22px">${choreIcon(c.name)}</span><div style="flex:1"><div style="font-size:13px;font-weight:600">${c.name}${state.cotw.choreId===c.id?' ⭐':''}</div><span style="font-size:11px;color:#888">${diffLabel[c.diff||'easy']}</span></div><div class="badge badge-green" style="margin-right:8px">+${c.pts} pts</div><div style="display:flex;gap:5px;flex-wrap:wrap">${ids.map(k=>`<button class="btn btn-sm btn-green" onclick="claimPoolChore('${k}',${c.id})" style="display:flex;align-items:center;gap:3px"><span style="font-size:13px">${kidSVG(state.participants[k].theme,16)}</span>${state.participants[k].name}</button>`).join('')}</div></div>`).join('');
+    bonus.map(c=>`<div class="pool-row"><span style="font-size:22px">${choreIcon(c.name,c.icon)}</span><div style="flex:1"><div style="font-size:13px;font-weight:600">${c.name}${state.cotw.choreId===c.id?' ⭐':''}</div><span style="font-size:11px;color:#888">${diffLabel[c.diff||'easy']}</span></div><div class="badge badge-green" style="margin-right:8px">+${c.pts} pts</div><div style="display:flex;gap:5px;flex-wrap:wrap">${ids.map(k=>`<button class="btn btn-sm btn-green" onclick="claimPoolChore('${k}',${c.id})" style="display:flex;align-items:center;gap:3px"><span style="font-size:13px">${kidSVG(state.participants[k].theme,16)}</span>${state.participants[k].name}</button>`).join('')}</div></div>`).join('');
 }
 
 function renderLearning(){
@@ -837,10 +945,12 @@ function renderApprovals(){
 
 function renderManage(){
   if(!unlocked.manage)return;
+  // init icon picker and pts hint on render
+  setTimeout(()=>{togglePtsInput();},50);
   const types={responsibility:'resp',bonus:'bonus','study-required':'study-req','study-bonus':'study-bonus'};
   const diffLabel={easy:'🟢 Easy',medium:'🟡 Medium',hard:'🔴 Hard'};
-  Object.keys(types).forEach(t=>{const el=document.getElementById(types[t]+'-list');if(!el)return;const items=state.chores.filter(c=>c.type===t);const isBonus=t==='bonus'||t==='study-bonus';el.innerHTML=items.length===0?'<div style="font-size:12px;color:#888">None yet.</div>':items.map(c=>`<div class="chore-row"><span style="font-size:18px">${choreIcon(c.name)}</span><div style="flex:1;font-size:13px;font-weight:500">${c.name} <span style="font-size:10px;color:#888;font-weight:400">${diffLabel[c.diff||'easy']}</span></div><div style="display:flex;align-items:center;gap:6px"><span class="badge ${isBonus?'badge-green':'badge-red'}">${isBonus?'+'+c.pts+' pts':'-'+state.rates.penalty+' if missed'}</span><button class="btn btn-sm" onclick="deleteChore(${c.id})">Remove</button></div></div>`).join('');});
-  const cotwSel=document.getElementById('cotw-chore-sel');if(cotwSel){const bonus=state.chores.filter(c=>c.type==='bonus');cotwSel.innerHTML=bonus.map(c=>`<option value="${c.id}"${state.cotw.choreId===c.id?' selected':''}>${choreIcon(c.name)} ${c.name}</option>`).join('');const cbp=document.getElementById('cotw-bonus-pts');if(cbp)cbp.value=state.cotw.bonusPts;}
+  Object.keys(types).forEach(t=>{const el=document.getElementById(types[t]+'-list');if(!el)return;const items=state.chores.filter(c=>c.type===t);const isBonus=t==='bonus'||t==='study-bonus';el.innerHTML=items.length===0?'<div style="font-size:12px;color:#888">None yet.</div>':items.map(c=>`<div class="chore-row"><span style="font-size:18px">${choreIcon(c.name,c.icon)}</span><div style="flex:1;font-size:13px;font-weight:500">${c.name} <span style="font-size:10px;color:#888;font-weight:400">${diffLabel[c.diff||'easy']}</span></div><div style="display:flex;align-items:center;gap:6px"><span class="badge ${isBonus?'badge-green':'badge-red'}">${isBonus?'+'+c.pts+' pts':'-'+state.rates.penalty+' if missed'}</span><button class="btn btn-sm" onclick="deleteChore(${c.id})">Remove</button></div></div>`).join('');});
+  const cotwSel=document.getElementById('cotw-chore-sel');if(cotwSel){const bonus=state.chores.filter(c=>c.type==='bonus');cotwSel.innerHTML=bonus.map(c=>`<option value="${c.id}"${state.cotw.choreId===c.id?' selected':''}>${choreIcon(c.name,c.icon)} ${c.name}</option>`).join('');const cbp=document.getElementById('cotw-bonus-pts');if(cbp)cbp.value=state.cotw.bonusPts;}
   const sbp=document.getElementById('streak-bonus-pts');if(sbp)sbp.value=state.streakSettings.bonusPts||25;
   const dds=document.getElementById('double-day-sel');if(dds)dds.value=state.streakSettings.doubleDay||'';
   const rps=document.getElementById('report-pts-settings');if(rps){const labels={book:'📖 Book',ted:'🎤 TED talk',documentary:'🎬 Documentary','online-lesson':'💻 Online lesson',podcast:'🎧 Podcast',article:'📰 Article',other:'🌟 Other'};rps.innerHTML=Object.keys(labels).map(k=>`<div class="input-row" style="margin-bottom:6px"><div style="flex:1;font-size:13px">${labels[k]}</div><input type="number" id="rpts-${k}" value="${state.reportPts[k]||20}" style="width:65px" min="1"><span style="font-size:11px;color:#888">pts</span></div>`).join('');}
@@ -848,7 +958,10 @@ function renderManage(){
 
 function renderRewards(){
   if(!unlocked.rewards)return;const ids=pIds();
-  const sr=document.getElementById('screen-rate');const mr=document.getElementById('money-rate');const pp=document.getElementById('penalty-pts');if(sr)sr.value=state.rates.screen;if(mr)mr.value=state.rates.money;if(pp)pp.value=state.rates.penalty;
+  const sr=document.getElementById('screen-rate');const mr=document.getElementById('money-rate');const pp=document.getElementById('penalty-pts');
+  if(sr)sr.value=state.rates.screen;if(mr)mr.value=state.rates.money;if(pp)pp.value=state.rates.penalty;
+  const sb50=document.getElementById('saving-bonus-50');const sb100=document.getElementById('saving-bonus-100');
+  if(sb50)sb50.value=state.rates.savingBonus50||3;if(sb100)sb100.value=state.rates.savingBonus100||5;
 
   // populate edit-kid dropdown
   const ek=document.getElementById('edit-kid');if(ek)ek.innerHTML=ids.map(k=>`<option value="${k}">${state.participants[k].name}</option>`).join('');
@@ -861,7 +974,21 @@ function renderRewards(){
   if(elw)elw.style.display=edits.length>0?'block':'none';
   if(elog){elog.innerHTML=edits.length===0?'':edits.slice().reverse().map(e=>{const diffStr=(e.diff>=0?'+':'')+e.diff;const color=e.diff>=0?'#0F6E56':'#A32D2D';return`<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #f5f5f5"><div><div style="font-size:13px;font-weight:600">${e.kid} — ${e.type==='chore'?'🧹 chore':'📚 learning'} pts <span style="color:${color};font-weight:700">${diffStr}</span> → ${e.after}</div><div style="font-size:11px;color:#888;margin-top:2px">📝 ${e.reason}</div><div style="font-size:10px;color:#bbb;margin-top:1px">${e.date} ${e.time}</div></div></div>`;}).join('');}
 
-  const rs=document.getElementById('redeem-section');if(rs){rs.innerHTML=ids.map(k=>{const p=state.participants[k];const total=totalPts(k);const cp=p.chorePoints||0;const lp=p.learnPoints||0;return`<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #f5f5f5"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">${kidSVG(p.theme,36)}<div><div style="font-size:14px;font-weight:700">${p.name}</div><div style="font-size:11px;color:#888">🧹 ${cp} chore + 📚 ${lp} learning = <strong>${total} pts</strong></div></div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-green" onclick="redeem('${k}','screen')">📺 ${Math.floor(total/state.rates.screen)}h screen time</button><button class="btn" onclick="redeem('${k}','money')">💵 $${(total/state.rates.money).toFixed(2)} cash</button><button class="btn btn-red btn-sm" onclick="resetKid('${k}')">🔄 Reset month</button></div></div>`;}).join('');}
+  const rs=document.getElementById('redeem-section');if(rs){rs.innerHTML=ids.map(k=>{
+    const p=state.participants[k];const total=totalPts(k);const cp=p.chorePoints||0;const lp=p.learnPoints||0;
+    const screenMins=total*(state.rates.screen?30/state.rates.screen:3);const screenDisp=screenMins>=60?Math.floor(screenMins/60)+'h '+(screenMins%60?Math.round(screenMins%60)+'min':''):Math.round(screenMins)+'min';
+    const money=(total/state.rates.money).toFixed(2);
+    const b50=state.rates.savingBonus50||3;const b100=state.rates.savingBonus100||5;
+    const savingMsg=total>=100?`🎉 100+ pts saved! Claim +${b100} bonus pts`:total>=50?`⭐ 50+ pts saved! Claim +${b50} bonus pts`:`Save to 50 pts for a +${b50} bonus (${50-total} to go)`;
+    return`<div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #f5f5f5">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">${kidSVG(p.theme,36)}<div><div style="font-size:14px;font-weight:700">${p.name}</div><div style="font-size:11px;color:#888">🧹 ${cp} chore + 📚 ${lp} learning = <strong>${total} pts</strong></div></div></div>
+      <div style="background:#f8f7ff;border-radius:10px;padding:8px 12px;font-size:12px;color:#534AB7;margin-bottom:10px">💰 ${savingMsg}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-green" onclick="redeem('${k}','screen')">📺 ${screenDisp} screen time</button>
+        <button class="btn" onclick="redeem('${k}','money')">💵 $${money} cash</button>
+        ${total>=50?`<button class="btn btn-purple btn-sm" onclick="applySavingBonus('${k}')">⭐ Saving bonus</button>`:''}
+        <button class="btn btn-red btn-sm" onclick="resetKid('${k}')">🔄 Reset month</button>
+      </div></div>`;}).join('');}
   const hl=document.getElementById('history-list');if(hl){hl.innerHTML=state.history.length===0?'<div style="font-size:13px;color:#888;text-align:center;padding:16px">📜 No redemptions yet</div>':state.history.slice().reverse().map(h=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5"><div><div style="font-size:13px;font-weight:600">${h.kid} — ${h.reward}</div><div style="font-size:11px;color:#888">${h.date} · ${h.pts} pts</div></div><span class="badge ${h.type==='screen'?'badge-purple':'badge-amber'}">${h.type==='screen'?'📺 screen':'💵 cash'}</span></div>`).join('');}
 }
 
