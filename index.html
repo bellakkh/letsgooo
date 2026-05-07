@@ -253,7 +253,7 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 <div class="tabs" id="main-tabs">
   <button class="tab active" onclick="showTab('dashboard')">🏠 Home</button>
   <button class="tab" onclick="showTab('weekly')">📅 Weekly</button>
-  <button class="tab" onclick="showTab('pool')">✨ Pool</button>
+  <button class="tab" onclick="showTab('pool')">✅ Tasks</button>
   <button class="tab" onclick="showTab('learning')">📚 Learning</button>
   <button class="tab" onclick="showTab('goals')">🎯 Goals</button>
   <button class="tab" onclick="showTab('reportcard')">📊 Report</button>
@@ -268,11 +268,6 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
   <div id="cotw-banner"></div>
   <div id="double-day-banner"></div>
   <div id="kids-grid" class="grid2" style="margin-bottom:12px"></div>
-  <div class="card"><div class="section-header"><span class="section-icon">📋</span><div class="section-title" style="margin:0">Today's tasks</div></div><div id="today-list"></div></div>
-  <div class="card">
-    <div class="section-header"><span class="section-icon">⚡</span><div class="section-title" style="margin:0">Quick: award bonus chore</div></div>
-    <div class="input-row"><select id="quick-kid" style="flex:1"></select><select id="quick-chore" style="flex:2"></select><button class="btn btn-green" onclick="awardBonusChore()">+ Award</button></div>
-  </div>
   <div class="card" style="background:#f8f7ff;border-color:#f0f0f0">
     <div style="font-size:11px;color:#888;margin-bottom:8px">💰 Point totals — <span id="current-month"></span></div>
     <div id="reward-progress"></div>
@@ -330,9 +325,48 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
   </div>
 </div>
 
-<!-- POOL -->
+<!-- TASKS (renamed from Pool) -->
 <div id="tab-pool" class="section">
-  <div class="card"><div class="section-header"><span class="section-icon">✨</span><div class="section-title" style="margin:0">Bonus chores up for grabs</div></div><div style="font-size:12px;color:#888;margin-bottom:12px">First one to do it gets the points! 🏆</div><div id="pool-list"></div></div>
+
+  <!-- Date header -->
+  <div id="tasks-date-header" style="text-align:center;margin-bottom:12px">
+    <div style="font-size:18px;font-weight:700;color:#3C3489" id="tasks-today-label"></div>
+    <div style="font-size:12px;color:#888" id="tasks-today-date"></div>
+  </div>
+
+  <!-- Double points banner (injected by JS) -->
+  <div id="tasks-double-banner"></div>
+  <!-- COTW banner (injected by JS) -->
+  <div id="tasks-cotw-banner"></div>
+
+  <!-- Responsibilities section -->
+  <div class="card">
+    <div class="section-header">
+      <span class="section-icon">🛡️</span>
+      <div class="section-title" style="margin:0">Responsibilities</div>
+      <span class="badge badge-red" style="margin-left:auto;font-size:10px">required</span>
+    </div>
+    <div style="font-size:11px;color:#888;margin-bottom:10px">Non-negotiable. Missing one deducts points.</div>
+    <div id="tasks-resp-list"></div>
+  </div>
+
+  <!-- Bonus Chores section -->
+  <div class="card">
+    <div class="section-header">
+      <span class="section-icon">⭐</span>
+      <div class="section-title" style="margin:0">Bonus chores</div>
+      <span class="badge badge-green" style="margin-left:auto;font-size:10px">earns points</span>
+    </div>
+    <div style="font-size:11px;color:#888;margin-bottom:10px">Complete a chore to earn points. Parent approves.</div>
+    <div id="tasks-bonus-list"></div>
+  </div>
+
+  <!-- Quick award (parent shortcut) -->
+  <div class="card" style="background:#f8f7ff;border-color:#f0f0f0">
+    <div class="section-header"><span class="section-icon">⚡</span><div class="section-title" style="margin:0;font-size:13px">Quick award (parent)</div></div>
+    <div class="input-row"><select id="quick-kid" style="flex:1"></select><select id="quick-chore" style="flex:2"></select><button class="btn btn-green" onclick="awardBonusChore()">+ Award</button></div>
+  </div>
+
 </div>
 
 <!-- LEARNING -->
@@ -680,8 +714,6 @@ function load(){
   }catch(e){}
 }
 load();
-// init gate dots after state is loaded
-document.addEventListener('DOMContentLoaded',()=>renderGateDots());
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function totalPts(k){const p=state.participants[k];return(p.chorePoints||0)+(p.learnPoints||0);}
@@ -698,30 +730,7 @@ function kidSVG(theme,size){
   return`<div style="width:${size}px;height:${size}px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:${size*0.45}px">${themeEmojis[theme]||'😊'}</div>`;
 }
 
-// ─── ENTRY GATE ───────────────────────────────────────────────
-let gateDigits=[];
-function renderGateDots(err=false){
-  const pwd=state.sitePassword||'1216';
-  const container=document.getElementById('gate-dots');
-  if(!container)return;
-  container.innerHTML=Array.from({length:pwd.length},(_,i)=>`<div class="gate-dot${err?' error':gateDigits[i]?' filled':''}" id="gdot-${i}"></div>`).join('');
-}
-function gatePress(v){
-  if(v==='')return;
-  if(v==='⌫'){gateDigits.pop();}else{if(gateDigits.length>=6)return;gateDigits.push(v);}
-  renderGateDots();
-  if(gateDigits.length>0&&gateDigits.length===state.sitePassword.length){setTimeout(checkGate,120);}
-}
-function updateGateDots(err=false){renderGateDots(err);}
-function checkGate(){
-  if(gateDigits.join('')===state.sitePassword){
-    document.getElementById('entry-gate').style.display='none';document.getElementById('app').style.display='block';render();
-  } else {
-    renderGateDots(true);
-    document.getElementById('gate-err').textContent='Wrong password, try again.';
-    setTimeout(()=>{gateDigits=[];updateGateDots();document.getElementById('gate-err').textContent='';},1400);
-  }
-}
+
 
 // ─── TAB ROUTING ─────────────────────────────────────────────
 function showTab(t){
@@ -1028,17 +1037,6 @@ function renderDashboard(){
   const double=isDoubleDay();const ddEl=document.getElementById('double-day-banner');
   if(ddEl)ddEl.innerHTML=double?`<div style="background:linear-gradient(135deg,#FAEEDA,#EAF3DE);border:2px solid #EF9F27;border-radius:16px;padding:10px 16px;margin-bottom:12px;font-size:13px;font-weight:600;color:#633806;text-align:center">🎉 Double points day! All bonus chores earn 2× today!</div>`:'';
 
-  const dayIdx=new Date().getDay();const today=DAYS[dayIdx===0?6:dayIdx-1];
-  const todayChores=(state.calendar[today]||[]).map(id=>getChore(id)).filter(Boolean);
-  const todayDiv=document.getElementById('today-list');
-  todayDiv.innerHTML=todayChores.length===0?'<div style="color:#888;font-size:13px;text-align:center;padding:16px">🎉 Nothing scheduled — enjoy the break!</div>':
-    todayChores.map(c=>{const isBonus=c.type==='bonus'||c.type==='study-bonus';const isCOTW=cotw.choreId===c.id;const tc=TYPE_COLORS[c.type]||TYPE_COLORS.responsibility;
-      return`<div style="display:flex;align-items:center;gap:10px;background:${tc.bg};border-radius:12px;padding:10px 12px;margin-bottom:6px;border:1.5px solid ${tc.border}">
-        <span style="font-size:20px">${choreIcon(c.name,c.icon)}</span>
-        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:${tc.text}">${c.name}${isCOTW?' ⭐':''}</div><div style="font-size:10px;color:${tc.text};opacity:.8">${isBonus?'+'+(double?c.pts*2:c.pts)+(isCOTW?'+'+cotw.bonusPts:'')+' pts':'Required — miss = -'+state.rates.penalty+' pts'}</div></div>
-        <div class="today-btns" style="display:flex;gap:5px">${ids.map(k=>`<button class="btn btn-sm btn-${isBonus?'green':'red'}" onclick="markDone('${k}',${c.id},'${c.type}')" style="display:flex;align-items:center;gap:3px"><span style="font-size:13px">${kidSVG(state.participants[k].theme,16)}</span><span>${state.participants[k].name}</span></button>`).join('')}</div>
-      </div>`;}).join('');
-
   document.getElementById('current-month').textContent=new Date().toLocaleString('default',{month:'long',year:'numeric'});
   document.getElementById('reward-progress').innerHTML=ids.map(k=>{const p=state.participants[k];const total=totalPts(k);const cp=p.chorePoints||0;const lp=p.learnPoints||0;const tc=THEME_CONFIG[p.theme]||THEME_CONFIG.pink;
     return`<div style="margin-bottom:12px;background:#fff;border-radius:12px;padding:12px;border:1.5px solid #f0f0f0">
@@ -1047,9 +1045,6 @@ function renderDashboard(){
       <div style="display:flex;gap:10px;margin-top:4px;font-size:10px;color:#888"><span>🧹 ${cp} chore</span><span>📚 ${lp} learning</span></div>
     </div>`;}).join('');
 
-  const qk=document.getElementById('quick-kid');const qc=document.getElementById('quick-chore');
-  if(qk)qk.innerHTML=ids.map(k=>`<option value="${k}">${state.participants[k].name}</option>`).join('');
-  if(qc){const bonus=state.chores.filter(c=>c.type==='bonus');qc.innerHTML=bonus.map(c=>`<option value="${c.id}">${choreIcon(c.name,c.icon)} ${c.name} (${c.pts}pts)</option>`).join('');}
 }
 
 function getWeekStart(offset){
@@ -1144,9 +1139,87 @@ function toggleDayChore(day,choreId){
 }
 
 function renderPool(){
-  const div=document.getElementById('pool-list');if(!div)return;const ids=pIds();const bonus=state.chores.filter(c=>c.type==='bonus');const diffLabel={easy:'🟢 Easy',medium:'🟡 Medium',hard:'🔴 Hard'};
-  div.innerHTML=bonus.length===0?'<div style="font-size:13px;color:#888">No bonus chores yet — add some in Manage.</div>':
-    bonus.map(c=>`<div class="pool-row"><span style="font-size:22px">${choreIcon(c.name,c.icon)}</span><div style="flex:1"><div style="font-size:13px;font-weight:600">${c.name}${state.cotw.choreId===c.id?' ⭐':''}</div><span style="font-size:11px;color:#888">${diffLabel[c.diff||'easy']}</span></div><div class="badge badge-green" style="margin-right:8px">+${c.pts} pts</div><div class="today-btns" style="display:flex;gap:5px">${ids.map(k=>`<button class="btn btn-sm btn-green" onclick="claimPoolChore('${k}',${c.id})" style="display:flex;align-items:center;gap:3px"><span style="font-size:13px">${kidSVG(state.participants[k].theme,16)}</span>${state.participants[k].name}</button>`).join('')}</div></div>`).join('');
+  const ids=pIds();
+  const dayIdx=new Date().getDay();
+  const todayName=DAYS[dayIdx===0?6:dayIdx-1];
+  const todayDate=new Date().toLocaleDateString('default',{weekday:'long',month:'long',day:'numeric'});
+  const todayShort=new Date().toLocaleDateString('default',{month:'short',day:'numeric'});
+
+  // Date header
+  const lbl=document.getElementById('tasks-today-label');
+  const dt=document.getElementById('tasks-today-date');
+  if(lbl)lbl.textContent=todayName;
+  if(dt)dt.textContent=todayDate;
+
+  // Double points banner
+  const double=isDoubleDay();
+  const dbl=document.getElementById('tasks-double-banner');
+  if(dbl)dbl.innerHTML=double?`<div style="background:linear-gradient(135deg,#FAEEDA,#EAF3DE);border:2px solid #EF9F27;border-radius:14px;padding:10px 14px;margin-bottom:10px;font-size:13px;font-weight:600;color:#633806;text-align:center">🎉 Double points day! All bonus chores earn 2× today!</div>`:'';
+
+  // COTW banner
+  const cotw=state.cotw;
+  const cotwEl=document.getElementById('tasks-cotw-banner');
+  if(cotwEl){
+    if(cotw.choreId){const c=getChore(cotw.choreId);cotwEl.innerHTML=c?`<div style="background:linear-gradient(135deg,#EEEDFE,#E6F1FB);border:2px solid #AFA9EC;border-radius:14px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:10px;font-weight:700;color:#3C3489;text-transform:uppercase;letter-spacing:.04em">⭐ Chore of the week</div><div style="font-size:14px;font-weight:600;margin-top:2px">${choreIcon(c.name,c.icon)} ${c.name}</div></div><span class="badge badge-purple">+${cotw.bonusPts} bonus pts</span></div>`:'';}
+    else cotwEl.innerHTML='';
+  }
+
+  // Get today's scheduled chore IDs
+  const scheduledIds=new Set(state.calendar[todayName]||[]);
+
+  // Responsibilities: all responsibility-type chores that are scheduled today
+  const respDiv=document.getElementById('tasks-resp-list');
+  if(respDiv){
+    const resps=state.chores.filter(c=>c.type==='responsibility'&&scheduledIds.has(c.id));
+    respDiv.innerHTML=resps.length===0
+      ?'<div style="font-size:13px;color:#888;text-align:center;padding:12px">No responsibilities scheduled for today 🎉</div>'
+      :resps.map(c=>{
+        const tc=TYPE_COLORS.responsibility;
+        return`<div style="display:flex;align-items:center;gap:10px;background:${tc.bg};border-radius:12px;padding:10px 12px;margin-bottom:8px;border:1.5px solid ${tc.border}">
+          <span style="font-size:22px">${choreIcon(c.name,c.icon)}</span>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600;color:${tc.text}">${c.name}</div>
+            <div style="font-size:10px;color:${tc.text};opacity:.8;margin-top:2px">🛡️ Responsibility · miss = -${state.rates.penalty||5} pts</div>
+          </div>
+          <div class="today-btns" style="display:flex;gap:5px">
+            ${ids.map(k=>`<button class="btn btn-sm btn-red" onclick="markDone('${k}',${c.id},'responsibility')" style="display:flex;align-items:center;gap:3px">
+              ${kidSVG(state.participants[k].theme,16)}<span>${state.participants[k].name} missed</span>
+            </button>`).join('')}
+          </div>
+        </div>`;
+      }).join('');
+  }
+
+  // Bonus chores: all bonus-type chores scheduled today
+  const bonusDiv=document.getElementById('tasks-bonus-list');
+  if(bonusDiv){
+    const bonuses=state.chores.filter(c=>c.type==='bonus'&&scheduledIds.has(c.id));
+    const diffLabel={easy:'🟢 Easy',medium:'🟡 Medium',hard:'🔴 Hard'};
+    const tc=TYPE_COLORS.bonus;
+    bonusDiv.innerHTML=bonuses.length===0
+      ?'<div style="font-size:13px;color:#888;text-align:center;padding:12px">No bonus chores scheduled for today.<br><span style="font-size:11px">Add them in the Weekly tab or use Quick Award below.</span></div>'
+      :bonuses.map(c=>{
+        const isCOTW=cotw.choreId===c.id;
+        const pts=c.pts*(double?2:1)+(isCOTW?cotw.bonusPts:0);
+        return`<div style="display:flex;align-items:center;gap:10px;background:${tc.bg};border-radius:12px;padding:10px 12px;margin-bottom:8px;border:1.5px solid ${tc.border}${isCOTW?';border-color:#AFA9EC':''}">
+          <span style="font-size:22px">${choreIcon(c.name,c.icon)}</span>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600;color:${tc.text}">${c.name}${isCOTW?' ⭐':''}</div>
+            <div style="font-size:10px;color:${tc.text};opacity:.8;margin-top:2px">⭐ Bonus chore · ${diffLabel[c.diff||'easy']} · +${pts} pts${double?' (2×)':''}${isCOTW?' +'+cotw.bonusPts+' COTW':''}</div>
+          </div>
+          <div class="today-btns" style="display:flex;gap:5px">
+            ${ids.map(k=>`<button class="btn btn-sm btn-green" onclick="markDone('${k}',${c.id},'bonus')" style="display:flex;align-items:center;gap:3px">
+              ${kidSVG(state.participants[k].theme,16)}<span>${state.participants[k].name}</span>
+            </button>`).join('')}
+          </div>
+        </div>`;
+      }).join('');
+  }
+
+  // Quick award dropdown
+  const qk=document.getElementById('quick-kid');const qc=document.getElementById('quick-chore');
+  if(qk)qk.innerHTML=ids.map(k=>`<option value="${k}">${state.participants[k].name}</option>`).join('');
+  if(qc){const bonus=state.chores.filter(c=>c.type==='bonus');qc.innerHTML=bonus.map(c=>`<option value="${c.id}">${choreIcon(c.name,c.icon)} ${c.name} (${c.pts}pts)</option>`).join('');}
 }
 
 function renderLearning(){
@@ -1305,7 +1378,40 @@ function renderSettings(){
   }
 }
 
-render();
+// ─── ENTRY GATE ───────────────────────────────────────────────
+let gateDigits=[];
+function renderGateDots(err=false){
+  const pwd=state.sitePassword||'1216';
+  const container=document.getElementById('gate-dots');
+  if(!container)return;
+  container.innerHTML=Array.from({length:pwd.length},(_,i)=>
+    `<div class="gate-dot${err?' error':gateDigits[i]?' filled':''}" id="gdot-${i}"></div>`
+  ).join('');
+}
+function gatePress(v){
+  if(v==='')return;
+  if(v==='⌫'){gateDigits.pop();}
+  else{if(gateDigits.length>=(state.sitePassword||'1216').length)return;gateDigits.push(v);}
+  renderGateDots();
+  const pwd=state.sitePassword||'1216';
+  if(gateDigits.length===pwd.length){setTimeout(checkGate,150);}
+}
+function updateGateDots(err=false){renderGateDots(err);}
+function checkGate(){
+  const pwd=state.sitePassword||'1216';
+  if(gateDigits.join('')===pwd){
+    document.getElementById('entry-gate').style.display='none';
+    document.getElementById('app').style.display='block';
+    render();
+  } else {
+    renderGateDots(true);
+    document.getElementById('gate-err').textContent='Wrong password, try again.';
+    setTimeout(()=>{gateDigits=[];renderGateDots();document.getElementById('gate-err').textContent='';},1400);
+  }
+}
+
+// ─── BOOT ─────────────────────────────────────────────────────
+renderGateDots();
 </script>
 </body>
 </html>
