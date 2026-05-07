@@ -252,7 +252,7 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 
 <div class="tabs" id="main-tabs">
   <button class="tab active" onclick="showTab('dashboard')">🏠 Home</button>
-  <button class="tab" onclick="showTab('weekly')">📅 Weekly</button>
+  <button class="tab" onclick="showTab('weekly')">Calendar</button>
   <button class="tab" onclick="showTab('pool')">✅ Tasks</button>
   <button class="tab" onclick="showTab('learning')">📚 Learning</button>
   <button class="tab" onclick="showTab('goals')">🎯 Goals</button>
@@ -276,25 +276,47 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 
 <!-- WEEKLY -->
 <div id="tab-weekly" class="section">
-  <!-- Week navigation + calendar -->
+  <!-- Calendar view controls -->
   <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <button class="btn btn-sm" onclick="changeWeek(-1)">← Prev</button>
+    <!-- View toggle -->
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button id="view-weekly-btn" class="btn" style="flex:1;font-weight:600;background:#EEEDFE;border-color:#AFA9EC;color:#3C3489" onclick="setCalView('weekly')">Weekly</button>
+      <button id="view-daily-btn" class="btn" style="flex:1" onclick="setCalView('daily')">Daily</button>
+    </div>
+
+    <!-- Nav row -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <button class="btn btn-sm" onclick="calNavPrev()">← Prev</button>
       <div style="text-align:center">
         <div style="font-size:14px;font-weight:600;color:#3C3489" id="week-label">This week</div>
         <div style="font-size:11px;color:#888" id="week-range"></div>
       </div>
-      <button class="btn btn-sm" onclick="changeWeek(1)">Next →</button>
+      <button class="btn btn-sm" onclick="calNavNext()">Next →</button>
     </div>
     <div style="display:flex;justify-content:center;margin-bottom:10px">
-      <button class="btn btn-sm" onclick="goToCurrentWeek()" id="today-btn" style="font-size:11px;color:#534AB7;border-color:#AFA9EC">Today</button>
+      <button class="btn btn-sm" onclick="goToToday()" id="today-btn" style="font-size:11px;color:#534AB7;border-color:#AFA9EC;display:none">Today</button>
     </div>
-    <div class="week-grid-wrap"><div class="week-grid" id="week-grid"></div></div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;font-size:10px">
-      <span class="tag tag-resp">🛡️ responsibility</span>
-      <span class="tag tag-bonus">⭐ bonus</span>
-      <span class="tag tag-study-req">📝 homework</span>
-      <span class="tag tag-study-bonus">🌟 learning</span>
+
+    <!-- Weekly grid -->
+    <div id="cal-weekly-view">
+      <div class="week-grid-wrap"><div class="week-grid" id="week-grid"></div></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;font-size:10px">
+        <span class="tag tag-resp">responsibility</span>
+        <span class="tag tag-bonus">bonus</span>
+        <span class="tag tag-study-req">homework</span>
+        <span class="tag tag-study-bonus">learning</span>
+      </div>
+    </div>
+
+    <!-- Daily view -->
+    <div id="cal-daily-view" style="display:none">
+      <div id="daily-grid"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;font-size:10px">
+        <span class="tag tag-resp">responsibility</span>
+        <span class="tag tag-bonus">bonus</span>
+        <span class="tag tag-study-req">homework</span>
+        <span class="tag tag-study-bonus">learning</span>
+      </div>
     </div>
   </div>
 
@@ -312,14 +334,14 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 
   <!-- Responsibilities from Manage -->
   <div class="card">
-    <div class="section-header"><span class="section-icon">🛡️</span><div class="section-title" style="margin:0">Responsibilities</div><span class="badge badge-red" style="margin-left:auto;font-size:10px">required daily</span></div>
+    <div class="section-header"><div class="section-title" style="margin:0">Responsibilities</div><span class="badge badge-red" style="margin-left:auto;font-size:10px">required daily</span></div>
     <div style="font-size:11px;color:#888;margin-bottom:10px">These are non-negotiable. Missing one costs points. Tap a day to assign.</div>
     <div id="weekly-resp-list"></div>
   </div>
 
   <!-- Bonus chores from Manage -->
   <div class="card">
-    <div class="section-header"><span class="section-icon">⭐</span><div class="section-title" style="margin:0">Bonus chores</div><span class="badge badge-green" style="margin-left:auto;font-size:10px">earns points</span></div>
+    <div class="section-header"><div class="section-title" style="margin:0">Bonus chores</div><span class="badge badge-green" style="margin-left:auto;font-size:10px">earns points</span></div>
     <div style="font-size:11px;color:#888;margin-bottom:10px">Add bonus chores to specific days or claim from the Chore Pool tab.</div>
     <div id="weekly-bonus-list"></div>
   </div>
@@ -342,7 +364,6 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
   <!-- Responsibilities section -->
   <div class="card">
     <div class="section-header">
-      <span class="section-icon">🛡️</span>
       <div class="section-title" style="margin:0">Responsibilities</div>
       <span class="badge badge-red" style="margin-left:auto;font-size:10px">required</span>
     </div>
@@ -353,7 +374,6 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
   <!-- Bonus Chores section -->
   <div class="card">
     <div class="section-header">
-      <span class="section-icon">⭐</span>
       <div class="section-title" style="margin:0">Bonus chores</div>
       <span class="badge badge-green" style="margin-left:auto;font-size:10px">earns points</span>
     </div>
@@ -363,7 +383,7 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 
   <!-- Quick award (parent shortcut) -->
   <div class="card" style="background:#f8f7ff;border-color:#f0f0f0">
-    <div class="section-header"><span class="section-icon">⚡</span><div class="section-title" style="margin:0;font-size:13px">Quick award (parent)</div></div>
+    <div class="section-header"><div class="section-title" style="margin:0;font-size:13px">Quick award (parent)</div></div>
     <div class="input-row"><select id="quick-kid" style="flex:1"></select><select id="quick-chore" style="flex:2"></select><button class="btn btn-green" onclick="awardBonusChore()">+ Award</button></div>
   </div>
 
@@ -373,14 +393,14 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 <div id="tab-learning" class="section">
   <!-- Homework section from Manage -->
   <div class="card">
-    <div class="section-header"><span class="section-icon">📝</span><div class="section-title" style="margin:0">Homework</div><span class="badge badge-blue" style="margin-left:auto;font-size:10px">required</span></div>
+    <div class="section-header"><div class="section-title" style="margin:0">Homework</div><span class="badge badge-blue" style="margin-left:auto;font-size:10px">required</span></div>
     <div style="font-size:11px;color:#888;margin-bottom:10px">Required study tasks. Missing them costs points. Synced from Manage tab.</div>
     <div id="learning-hw-list"></div>
   </div>
 
   <!-- Learning bonus from Manage -->
   <div class="card">
-    <div class="section-header"><span class="section-icon">🌟</span><div class="section-title" style="margin:0">Learning bonus tasks</div><span class="badge badge-purple" style="margin-left:auto;font-size:10px">earns points</span></div>
+    <div class="section-header"><div class="section-title" style="margin:0">Learning bonus tasks</div><span class="badge badge-purple" style="margin-left:auto;font-size:10px">earns points</span></div>
     <div style="font-size:11px;color:#888;margin-bottom:10px">Optional extras that earn points. Mark as done and submit a report for approval. Synced from Manage tab.</div>
     <div id="learning-bonus-list"></div>
   </div>
@@ -396,18 +416,18 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
   </div>
 
   <!-- Learning log -->
-  <div class="card"><div class="section-header"><span class="section-icon">📖</span><div class="section-title" style="margin:0">Learning log</div></div><div id="learning-log"></div></div>
+  <div class="card"><div class="section-header"><div class="section-title" style="margin:0">Learning log</div></div><div id="learning-log"></div></div>
 </div>
 
 <!-- GOALS -->
 <div id="tab-goals" class="section">
-  <div class="card"><div class="section-header"><span class="section-icon">🎯</span><div class="section-title" style="margin:0">Savings goals</div></div><div style="font-size:12px;color:#888;margin-bottom:12px">Set a goal and watch the points roll in! 🚀</div><div id="goals-list"></div></div>
+  <div class="card"><div class="section-header"><div class="section-title" style="margin:0">Savings goals</div></div><div style="font-size:12px;color:#888;margin-bottom:12px">Set a goal and watch the points roll in! 🚀</div><div id="goals-list"></div></div>
   <div class="card"><div class="section-title">➕ Add a goal</div><div class="input-row"><select id="goal-kid" style="flex:0 0 115px"></select><input type="text" id="goal-name" placeholder="Goal name (e.g. new game 🎮)" style="flex:2"><input type="number" id="goal-pts" placeholder="pts needed" style="width:95px" min="1"><button class="btn btn-purple" onclick="addGoal()">+ Add</button></div></div>
 </div>
 
 <!-- REPORT CARD -->
 <div id="tab-reportcard" class="section">
-  <div class="card"><div class="section-header"><span class="section-icon">📊</span><div class="section-title" style="margin:0">Weekly report card</div></div><div id="report-card-content"></div></div>
+  <div class="card"><div class="section-header"><div class="section-title" style="margin:0">Weekly report card</div></div><div id="report-card-content"></div></div>
 </div>
 
 <!-- APPROVALS -->
@@ -416,12 +436,12 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
   <div id="approvals-content" style="display:none">
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-amber btn-sm" onclick="lockTab('approvals')">🔒 Lock</button></div>
     <div class="card">
-      <div class="section-header"><span class="section-icon">🧹</span><div class="section-title" style="margin:0">Pending chores</div></div>
+      <div class="section-header"><div class="section-title" style="margin:0">Pending chores</div></div>
       <div style="font-size:12px;color:#888;margin-bottom:12px">Bonus chores marked as done — approve to award points or reject to deny.</div>
       <div id="pending-chores"></div>
     </div>
     <div class="card">
-      <div class="section-header"><span class="section-icon">📚</span><div class="section-title" style="margin:0">Pending learning reports</div></div>
+      <div class="section-header"><div class="section-title" style="margin:0">Pending learning reports</div></div>
       <div style="font-size:12px;color:#888;margin-bottom:12px">Written reports submitted by the kids — review and approve to award points.</div>
       <div id="pending-approvals"></div>
     </div>
@@ -496,7 +516,7 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
   <div id="rewards-content" style="display:none">
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-amber btn-sm" onclick="lockTab('rewards')">🔒 Lock</button></div>
     <div class="card">
-      <div class="section-header"><span class="section-icon">⚙️</span><div class="section-title" style="margin:0">Redemption settings</div></div>
+      <div class="section-header"><div class="section-title" style="margin:0">Redemption settings</div></div>
       <div style="font-size:12px;color:#888;margin-bottom:10px;background:#f8f7ff;border-radius:10px;padding:10px">
         <strong>Default system:</strong> 1 hour effort ≈ 10 pts · 10 pts = 30 min screen time · 10 pts = $1
       </div>
@@ -533,8 +553,8 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
         <div id="edit-log"></div>
       </div>
     </div>
-    <div class="card"><div class="section-header"><span class="section-icon">🎁</span><div class="section-title" style="margin:0">Redeem points</div></div><div id="redeem-section"></div></div>
-    <div class="card"><div class="section-header"><span class="section-icon">🕓</span><div class="section-title" style="margin:0">Redemption history</div></div><div id="history-list"></div></div>
+    <div class="card"><div class="section-header"><div class="section-title" style="margin:0">Redeem points</div></div><div id="redeem-section"></div></div>
+    <div class="card"><div class="section-header"><div class="section-title" style="margin:0">Redemption history</div></div><div id="history-list"></div></div>
   </div>
 </div>
 
@@ -545,7 +565,7 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-amber btn-sm" onclick="lockTab('settings')">🔒 Lock</button></div>
 
     <div class="card">
-      <div class="section-header"><span class="section-icon">👥</span><div class="section-title" style="margin:0">Participants</div></div>
+      <div class="section-header"><div class="section-title" style="margin:0">Participants</div></div>
       <div style="font-size:12px;color:#888;margin-bottom:14px">Edit names, colors, or add new participants. Each gets their own points tracker and card.</div>
       <div id="participants-list"></div>
       <div class="divider"></div>
@@ -564,7 +584,7 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
     </div>
 
     <div class="card">
-      <div class="section-header"><span class="section-icon">🔑</span><div class="section-title" style="margin:0">Site access password</div></div>
+      <div class="section-header"><div class="section-title" style="margin:0">Site access password</div></div>
       <div style="font-size:12px;color:#888;margin-bottom:12px">This is the password shown on the entry screen when anyone opens the site.</div>
       <div class="input-row">
         <input type="password" id="site-pwd-old" placeholder="Current password" style="flex:1" maxlength="6">
@@ -575,7 +595,7 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
     </div>
 
     <div class="card">
-      <div class="section-header"><span class="section-icon">📤</span><div class="section-title" style="margin:0">Export & backup</div></div>
+      <div class="section-header"><div class="section-title" style="margin:0">Export & backup</div></div>
       <div style="font-size:12px;color:#888;margin-bottom:12px">Download all your data as a JSON file, or copy a share link.</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-blue" onclick="exportData()">📥 Export data (JSON)</button>
@@ -584,7 +604,7 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
     </div>
 
     <div class="card" style="border-color:#FCEBEB">
-      <div class="section-header"><span class="section-icon">⚠️</span><div class="section-title" style="margin:0;color:#A32D2D">Danger zone</div></div>
+      <div class="section-header"><div class="section-title" style="margin:0;color:#A32D2D">Danger zone</div></div>
       <div style="font-size:12px;color:#888;margin-bottom:12px">These actions cannot be undone.</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-danger btn-sm" onclick="resetAllPoints()">🔄 Reset all points</button>
@@ -629,14 +649,54 @@ const CARD_STYLES={
 };
 
 const CHORE_ICONS={
-  'Make bed':'🛏️','Keep room tidy':'🧹','Put dirty clothes in hamper':'👕','Change bed sheets':'🛏️','Organize closet':'👚','Vacuum bedroom':'🌀','Tidy desk and study area':'🖊️','Open window to air out room':'🪟',
-  'Shower after sport practice':'🚿','Clean bathroom sink & mirror':'🪥','Scrub toilet':'🚽','Wipe down shower or tub':'🫧','Take out bathroom trash':'🗑️','Replace toilet roll':'🧻','Refill soap dispensers':'🧴','Clean bathroom floor':'🫧',
-  'Clear the table after meals':'🍽️','Wash dishes by hand':'🍳','Load dishwasher':'🫙','Empty dishwasher':'✨','Wipe down counters':'🧽','Sweep kitchen floor':'🧹','Take out kitchen trash':'🗑️','Pack own school lunch':'🥪','Wipe inside microwave':'📦','Clean fridge shelves':'🧊','Refill water filter':'💧','Set the table for dinner':'🍽️','Prep a simple snack or meal':'🥗','Put groceries away':'🛒',
-  'Do a load of laundry':'🫧','Fold own laundry':'👕','Put away own laundry':'🗄️','Fold family laundry':'🧺','Iron clothes':'👔','Sort laundry by color':'🔴','Hang clothes to dry':'🌬️',
-  'Vacuum living room':'🌀','Dust furniture':'✨','Mop floors':'🪣','Tidy common areas':'🏠','Take trash bins to curb':'🗑️','Bring bins back in':'♻️','Organize pantry or cupboards':'🥫','Wipe light switches & door handles':'💡','Clean windows':'🪟','Sweep porch or entry':'🧹','Declutter a shared space':'📦','Vacuum stairs':'🌀','Clean mirrors':'🪟',
-  'Water plants':'🌿','Mow lawn':'🌱','Rake leaves':'🍂','Feed pets':'🐾','Walk the dog':'🦮','Clean pet bowls':'🐶','Clean pet cage or litter box':'🐱','Shovel snow':'❄️','Pull weeds':'🌾','Sweep driveway':'🧹','Wash the car':'🚗','Water outdoor plants':'🌺','Pick up yard litter':'🍃',
-  'Complete daily homework':'📝','Study for upcoming test':'📚','Practice instrument':'🎵','Review class notes':'📖','Reading assignment':'📖','Prepare school bag for next day':'🎒','Organize school binder or folder':'📁','Complete a practice worksheet':'✏️',
-  'Watch & report on TED talk':'🎤','Read extra book chapter':'📖','Complete online lesson':'💻','Write book summary':'✍️','Research a topic of interest':'🔬','Listen to educational podcast':'🎧','Learn a new skill online':'💡','Write a short story or journal':'📓','Do a science experiment':'🧪','Learn 10 words in another language':'🌍','Watch a nature or history documentary':'🎬','Draw or sketch something from observation':'🎨','Read a newspaper article and discuss':'📰','Practice coding or logic puzzles':'🖥️','Learn about a historical event':'🏛️',
+  // Bedroom & personal
+  'Make bed':'🛏️','Keep room tidy':'🧹','Put dirty clothes in hamper':'👕','Change bed sheets':'🛏️',
+  'Organize closet':'👚','Vacuum bedroom':'🌀','Tidy desk and study area':'🖊️','Open window to air out room':'🪟',
+  'Brush teeth':'🦷','Get dressed':'👗','Personal hygiene':'🪥','Morning routine':'☀️',
+  // Bathroom
+  'Shower after sport practice':'🚿','Shower':'🚿','Clean bathroom sink & mirror':'🪥',
+  'Scrub toilet':'🚽','Wipe down shower or tub':'🫧','Take out bathroom trash':'🗑️',
+  'Replace toilet roll':'🧻','Refill soap dispensers':'🧴','Clean bathroom floor':'🫧',
+  // Kitchen
+  'Clear the table after meals':'🍽️','Set the table for dinner':'🍽️','Wash dishes by hand':'🍳',
+  'Load dishwasher':'🫙','Empty dishwasher':'✨','Wipe down counters':'🧽',
+  'Sweep kitchen floor':'🧹','Take out kitchen trash':'🗑️','Pack own school lunch':'🥪',
+  'Wipe inside microwave':'📦','Clean fridge shelves':'🧊','Refill water filter':'💧',
+  'Put groceries away':'🛒','Prep a simple snack or meal':'🥗','Cook dinner':'🍳',
+  // Laundry
+  'Do a load of laundry':'🧺','Sort laundry by color':'🔴','Fold own laundry':'👕',
+  'Put away own laundry':'🗄️','Fold family laundry':'🧺','Hang clothes to dry':'🌬️','Iron clothes':'👔',
+  // House
+  'Vacuum living room':'🌀','Vacuum stairs':'🌀','Dust furniture':'🪶','Mop floors':'🪣',
+  'Tidy common areas':'🏠','Take trash bins to curb':'🗑️','Bring bins back in':'♻️',
+  'Organize pantry or cupboards':'🥫','Wipe light switches & door handles':'💡',
+  'Clean windows':'🪟','Sweep porch or entry':'🧹','Declutter a shared space':'📦',
+  'Clean mirrors':'🪞','Sanitize surfaces':'🧼',
+  // Outdoors & pets
+  'Water plants':'🌿','Water outdoor plants':'🌺','Mow lawn':'🌱','Rake leaves':'🍂',
+  'Feed pets':'🐾','Walk the dog':'🦮','Clean pet bowls':'🐶','Clean pet cage or litter box':'🐱',
+  'Shovel snow':'❄️','Pull weeds':'🌾','Sweep driveway':'🧹','Wash the car':'🚗',
+  'Pick up yard litter':'🍃','Garden work':'🌻',
+  // Sport & workout
+  'Soccer practice':'⚽','Basketball practice':'🏀','Swimming practice':'🏊',
+  'Tennis practice':'🎾','Gym workout':'🏋️','Running':'🏃','Cycling':'🚴',
+  'Stretch after practice':'🧘','Cool down':'🧊','Pack sports bag':'🎽',
+  'Clean sports gear':'👟','Volleyball practice':'🏐','Martial arts':'🥋',
+  'Dance practice':'💃','Gymnastics':'🤸','Track & field':'🏃',
+  'Yoga':'🧘','Strength training':'💪','Cardio workout':'❤️','Sports recovery':'🛀',
+  // Homework & study
+  'Complete daily homework':'📝','Study for upcoming test':'📚','Practice instrument':'🎵',
+  'Review class notes':'📖','Reading assignment':'📖','Prepare school bag for next day':'🎒',
+  'Organize school binder or folder':'📁','Complete a practice worksheet':'✏️',
+  'Flash card review':'🃏','Group study session':'👥','Math practice':'🔢','Writing practice':'✍️',
+  // Learning bonus
+  'Watch & report on TED talk':'🎤','Read extra book chapter':'📖','Complete online lesson':'💻',
+  'Write book summary':'✍️','Research a topic of interest':'🔬','Listen to educational podcast':'🎧',
+  'Learn a new skill online':'💡','Write a short story or journal':'📓','Do a science experiment':'🧪',
+  'Learn 10 words in another language':'🌍','Watch a nature or history documentary':'🎬',
+  'Draw or sketch something from observation':'🎨','Read a newspaper article and discuss':'📰',
+  'Practice coding or logic puzzles':'🖥️','Learn about a historical event':'🏛️',
+  'Visit a museum or exhibition':'🏛️','Read a biography':'📚','Learn to cook a new recipe':'👨‍🍳',
 };
 
 const TYPE_COLORS={
@@ -684,7 +744,7 @@ let state={
   learningLog:[],pendingReports:[],goals:[],history:[],
   cotw:{choreId:null,bonusPts:20},
   streakSettings:{bonusPts:25,doubleDay:''},
-  pin:'1234',nextId:12,nextParticipantId:3,weekOffset:0
+  pin:'1234',nextId:12,nextParticipantId:3,weekOffset:0,calView:'weekly',dayOffset:0
 };
 
 let unlocked={manage:false,rewards:false,approvals:false,settings:false};
@@ -830,11 +890,31 @@ function togglePtsInput(){
   }
   renderIconPicker(t,d);
 }
+const ICON_GROUPS=[
+  {label:'Bedroom',icons:['🛏️','🧹','👕','👗','👚','🪟','🖊️','☀️','🌙','🛁']},
+  {label:'Bathroom',icons:['🚿','🪥','🚽','🫧','🧴','🧻','🪞','🧼','💊','🧽']},
+  {label:'Kitchen',icons:['🍽️','🍳','🫙','✨','🧽','🗑️','🥪','🧊','💧','🛒','🥗','🥫','👨‍🍳','🍴','🫕']},
+  {label:'Laundry',icons:['🧺','👕','👔','🗄️','🌬️','🔴','🪣']},
+  {label:'House',icons:['🏠','🌀','🪶','♻️','💡','🪟','📦','🪞','🔑','🛋️']},
+  {label:'Outdoors',icons:['🌿','🌱','🍂','🌺','🌻','🍃','🌾','❄️','🚗','🏡','🌳','🌦️']},
+  {label:'Pets',icons:['🐾','🦮','🐶','🐱','🐰','🐟','🐦','🦜','🐾','🐕']},
+  {label:'Sport',icons:['⚽','🏀','🏊','🎾','🏋️','🏃','🚴','🧘','🎽','👟','🏐','🥋','💃','🤸','🏅','🥅','⛹️','🎿','🏂','🚵']},
+  {label:'Fitness',icons:['💪','❤️','🏃','🧘','🛀','🧊','⏱️','🩹','😤','🥊']},
+  {label:'School',icons:['📝','📚','📖','🎒','📁','✏️','🖊️','📐','📏','🔢','🃏','👥','📋']},
+  {label:'Learning',icons:['🎤','💻','✍️','🔬','🎧','📓','🧪','🌍','🎬','🎨','📰','🖥️','🏛️','💡','🔭','🧬','📡']},
+  {label:'Music & art',icons:['🎵','🎶','🎸','🎹','🎺','🎻','🥁','🎤','🎨','🖌️','✂️','🎭']},
+  {label:'General',icons:['⭐','✅','❌','⏰','📅','🗓️','🏆','🎯','💰','🎁','🚀','💫','🌈','🔥','💎']},
+];
 function renderIconPicker(type,diff){
   const container=document.getElementById('icon-picker');if(!container)return;
-  const allIcons=['🛏️','🧹','👕','🚿','🪥','🚽','🫧','🧴','🍽️','🍳','🫙','✨','🧽','🗑️','🥪','🧊','💧','🛒','🥗','🧺','👔','🌬️','🌀','🏠','♻️','🥫','💡','🪟','📦','🌿','🌱','🍂','🐾','🦮','🐶','🐱','❄️','🌾','🚗','🌺','🍃','📝','📚','🎵','📖','🎒','📁','✏️','🎤','💻','✍️','🔬','🎧','📓','🧪','🌍','🎬','🎨','📰','🖥️','🏛️','🔴','🪣','🐳','🐢','🦉'];
   const currentIcon=document.getElementById('new-chore-icon').value||'✅';
-  container.innerHTML=allIcons.map(ic=>`<button type="button" onclick="selectIcon('${ic}')" style="font-size:18px;width:34px;height:34px;border-radius:8px;border:2px solid ${ic===currentIcon?'#534AB7':'#e0e0e0'};background:${ic===currentIcon?'#EEEDFE':'#fff'};cursor:pointer;transition:all .15s" title="${ic}">${ic}</button>`).join('');
+  container.innerHTML=ICON_GROUPS.map(g=>`
+    <div style="margin-bottom:8px">
+      <div style="font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">${g.label}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        ${g.icons.map(ic=>`<button type="button" onclick="selectIcon('${ic}')" style="font-size:17px;width:36px;height:36px;border-radius:8px;border:2px solid ${ic===currentIcon?'#534AB7':'#e0e0e0'};background:${ic===currentIcon?'#EEEDFE':'#fff'};cursor:pointer;flex-shrink:0" title="${ic}">${ic}</button>`).join('')}
+      </div>
+    </div>`).join('');
 }
 function selectIcon(ic){
   document.getElementById('new-chore-icon').value=ic;
@@ -1014,15 +1094,19 @@ function renderDashboard(){
   const ids=pIds();const grid=document.getElementById('kids-grid');
   if(grid){
     grid.style.gridTemplateColumns=ids.length===1?'1fr':ids.length===2?'1fr 1fr':'repeat(auto-fit,minmax(200px,1fr))';
-    grid.innerHTML=ids.map(k=>{const p=state.participants[k];const cs=CARD_STYLES[p.theme]||CARD_STYLES.pink;const tc=THEME_CONFIG[p.theme]||THEME_CONFIG.pink;const streak=p.streak||0;
+    grid.innerHTML=ids.map(k=>{const p=state.participants[k];const cs=CARD_STYLES[p.theme]||CARD_STYLES.pink;const tc=THEME_CONFIG[p.theme]||THEME_CONFIG.pink;const streak=p.streak||0;const total=totalPts(k);
       return`<div class="card" style="background:${cs.bg};border:${cs.border}">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
           <div style="flex-shrink:0">${kidSVG(p.theme,50)}</div>
-          <div style="flex:1"><div style="font-size:15px;font-weight:700">${p.name}</div><div style="font-size:11px;color:#888">This month</div>${streak>=3?`<div style="font-size:11px;font-weight:600;color:#854F0B;margin-top:2px">🔥 ${streak} day streak!</div>`:''}</div>
+          <div style="flex:1"><div style="font-size:15px;font-weight:700">${p.name}</div><div style="font-size:11px;color:#888">This month</div>${streak>=3?`<div style="font-size:11px;font-weight:600;color:#854F0B;margin-top:2px"> ${streak} day streak</div>`:''}</div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:26px;font-weight:700;color:${cs.ptsColor1};line-height:1">${total}</div>
+            <div style="font-size:10px;color:#888;margin-top:2px">total pts</div>
+          </div>
         </div>
         <div class="two-col-pts">
-          <div class="pts-box" style="background:${cs.ptsBg1};border-color:${cs.ptsBorder1}"><div class="num" style="color:${cs.ptsColor1}">${p.chorePoints||0}</div><div class="lbl">🧹 chore pts</div></div>
-          <div class="pts-box" style="background:${cs.ptsBg2};border-color:${cs.ptsBorder2}"><div class="num" style="color:${cs.ptsColor2}">${p.learnPoints||0}</div><div class="lbl">📚 learning pts</div></div>
+          <div class="pts-box" style="background:${cs.ptsBg1};border-color:${cs.ptsBorder1}"><div class="num" style="color:${cs.ptsColor1}">${p.chorePoints||0}</div><div class="lbl">chore pts</div></div>
+          <div class="pts-box" style="background:${cs.ptsBg2};border-color:${cs.ptsBorder2}"><div class="num" style="color:${cs.ptsColor2}">${p.learnPoints||0}</div><div class="lbl">learning pts</div></div>
         </div>
         <div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">
           <span class="badge ${cs.badgeClass1}">${p.bonusDone||0} bonus</span>
@@ -1033,7 +1117,7 @@ function renderDashboard(){
   }
 
   const cotw=state.cotw;const cotwEl=document.getElementById('cotw-banner');
-  if(cotwEl){if(cotw.choreId){const c=getChore(cotw.choreId);cotwEl.innerHTML=c?`<div style="background:linear-gradient(135deg,#EEEDFE,#E6F1FB);border:2px solid #AFA9EC;border-radius:16px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:10px;font-weight:700;color:#3C3489;text-transform:uppercase;letter-spacing:.05em">⭐ Chore of the week</div><div style="font-size:15px;font-weight:600;margin-top:3px">${choreIcon(c.name,c.icon)} ${c.name}</div></div><span class="badge badge-purple">+${cotw.bonusPts} bonus pts</span></div>`:'';}else cotwEl.innerHTML='';}
+  if(cotwEl){if(cotw.choreId){const c=getChore(cotw.choreId);cotwEl.innerHTML=c?`<div style="background:linear-gradient(135deg,#EEEDFE,#E6F1FB);border:2px solid #AFA9EC;border-radius:16px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:10px;font-weight:700;color:#3C3489;text-transform:uppercase;letter-spacing:.05em">⭐ Chore of the week</div><div style="font-size:15px;font-weight:600;margin-top:3px">${c.name}</div></div><span class="badge badge-purple">+${cotw.bonusPts} bonus pts</span></div>`:'';}else cotwEl.innerHTML='';}
   const double=isDoubleDay();const ddEl=document.getElementById('double-day-banner');
   if(ddEl)ddEl.innerHTML=double?`<div style="background:linear-gradient(135deg,#FAEEDA,#EAF3DE);border:2px solid #EF9F27;border-radius:16px;padding:10px 16px;margin-bottom:12px;font-size:13px;font-weight:600;color:#633806;text-align:center">🎉 Double points day! All bonus chores earn 2× today!</div>`:'';
 
@@ -1042,7 +1126,7 @@ function renderDashboard(){
     return`<div style="margin-bottom:12px;background:#fff;border-radius:12px;padding:12px;border:1.5px solid #f0f0f0">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div style="flex-shrink:0">${kidSVG(p.theme,30)}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${p.name}</div><div style="font-size:11px;color:#888">${(()=>{const m=total*(state.rates.screen?30/state.rates.screen:3);return m>=60?Math.floor(m/60)+'h '+(m%60?Math.round(m%60)+'min':''):Math.round(m)+'min';})()  } screen OR $${(total/state.rates.money).toFixed(2)}</div></div><div style="text-align:right"><div style="font-size:20px;font-weight:700">${total}</div><div style="font-size:10px;color:#888">pts total</div></div></div>
       <div style="display:flex;height:9px;border-radius:99px;overflow:hidden;background:#f0f0f0"><div style="width:${Math.min(100,cp/2)}%;background:${tc.barColor}"></div><div style="width:${Math.min(60,lp/2)}%;background:${tc.learnColor}"></div></div>
-      <div style="display:flex;gap:10px;margin-top:4px;font-size:10px;color:#888"><span>🧹 ${cp} chore</span><span>📚 ${lp} learning</span></div>
+      <div style="display:flex;gap:10px;margin-top:4px;font-size:10px;color:#888"><span>${cp} chore</span><span>${lp} learning</span></div>
     </div>`;}).join('');
 
 }
@@ -1058,23 +1142,65 @@ function getWeekStart(offset){
 }
 function changeWeek(dir){state.weekOffset=(state.weekOffset||0)+dir;save();renderWeekly();}
 function goToCurrentWeek(){state.weekOffset=0;save();renderWeekly();}
+function setCalView(v){
+  state.calView=v;
+  const wv=document.getElementById('cal-weekly-view');
+  const dv=document.getElementById('cal-daily-view');
+  const wb=document.getElementById('view-weekly-btn');
+  const db=document.getElementById('view-daily-btn');
+  if(wv)wv.style.display=v==='weekly'?'block':'none';
+  if(dv)dv.style.display=v==='daily'?'block':'none';
+  if(wb){wb.style.background=v==='weekly'?'#EEEDFE':'';wb.style.borderColor=v==='weekly'?'#AFA9EC':'';wb.style.color=v==='weekly'?'#3C3489':'';}
+  if(db){db.style.background=v==='daily'?'#EEEDFE':'';db.style.borderColor=v==='daily'?'#AFA9EC':'';db.style.color=v==='daily'?'#3C3489':'';}
+  save();renderWeekly();
+}
+function calNavPrev(){
+  if((state.calView||'weekly')==='weekly'){state.weekOffset=(state.weekOffset||0)-1;}
+  else{state.dayOffset=(state.dayOffset||0)-1;}
+  save();renderWeekly();
+}
+function calNavNext(){
+  if((state.calView||'weekly')==='weekly'){state.weekOffset=(state.weekOffset||0)+1;}
+  else{state.dayOffset=(state.dayOffset||0)+1;}
+  save();renderWeekly();
+}
+function goToToday(){state.weekOffset=0;state.dayOffset=0;save();renderWeekly();}
 
 function renderWeekly(){
+  const calView=state.calView||'weekly';
+
+  // Sync view toggle button styles
+  const wb=document.getElementById('view-weekly-btn');const db=document.getElementById('view-daily-btn');
+  if(wb){wb.style.background=calView==='weekly'?'#EEEDFE':'';wb.style.borderColor=calView==='weekly'?'#AFA9EC':'';wb.style.color=calView==='weekly'?'#3C3489':'';}
+  if(db){db.style.background=calView==='daily'?'#EEEDFE':'';db.style.borderColor=calView==='daily'?'#AFA9EC':'';db.style.color=calView==='daily'?'#3C3489':'';}
+
+  // Show/hide view panels
+  const wv=document.getElementById('cal-weekly-view');const dv=document.getElementById('cal-daily-view');
+  if(wv)wv.style.display=calView==='weekly'?'block':'none';
+  if(dv)dv.style.display=calView==='daily'?'block':'none';
+
   const offset=state.weekOffset||0;
+  const dayOffset=state.dayOffset||0;
   const weekStart=getWeekStart(offset);
   const weekEnd=new Date(weekStart);weekEnd.setDate(weekEnd.getDate()+6);
   const isCurrentWeek=offset===0;
+  const isToday2=dayOffset===0;
 
-  // Update header labels
+  // Header labels differ by view
   const wLabel=document.getElementById('week-label');
   const wRange=document.getElementById('week-range');
   const todayBtn=document.getElementById('today-btn');
-  if(wLabel)wLabel.textContent=isCurrentWeek?'This week':offset===-1?'Last week':offset===1?'Next week':'Week of '+weekStart.toLocaleDateString('default',{month:'short',day:'numeric'});
-  if(wRange){
-    const fmt=d=>d.toLocaleDateString('default',{month:'short',day:'numeric'});
-    wRange.textContent=fmt(weekStart)+' – '+fmt(weekEnd);
+
+  if(calView==='weekly'){
+    if(wLabel)wLabel.textContent=isCurrentWeek?'This week':offset===-1?'Last week':offset===1?'Next week':'Week of '+weekStart.toLocaleDateString('default',{month:'short',day:'numeric'});
+    if(wRange){const fmt=d=>d.toLocaleDateString('default',{month:'short',day:'numeric'});wRange.textContent=fmt(weekStart)+' – '+fmt(weekEnd);}
+    if(todayBtn)todayBtn.style.display=isCurrentWeek?'none':'inline-block';
+  } else {
+    const dayDate=new Date();dayDate.setDate(dayDate.getDate()+dayOffset);
+    if(wLabel)wLabel.textContent=dayDate.toLocaleDateString('default',{weekday:'long'});
+    if(wRange)wRange.textContent=dayDate.toLocaleDateString('default',{month:'long',day:'numeric',year:'numeric'});
+    if(todayBtn)todayBtn.style.display=isToday2?'none':'inline-block';
   }
-  if(todayBtn)todayBtn.style.display=isCurrentWeek?'none':'inline-block';
 
   const grid=document.getElementById('week-grid');if(!grid)return;
   const today=new Date();today.setHours(0,0,0,0);
@@ -1100,7 +1226,7 @@ function renderWeekly(){
       resps.map(c=>{
         const inCalDays=DAYS.filter(d=>(state.calendar[d]||[]).includes(c.id));
         return`<div class="chore-row">
-          <span style="font-size:18px">${choreIcon(c.name,c.icon)}</span>
+          <span style="font-size:18px;flex-shrink:0">${choreIcon(c.name,c.icon)}</span>
           <div style="flex:1"><div style="font-size:13px;font-weight:500">${c.name}</div>
           <div style="font-size:10px;color:#888;margin-top:2px">${inCalDays.length>0?'Scheduled: '+inCalDays.map(d=>d.slice(0,3)).join(', '):'Not scheduled any day yet'}</div></div>
           <div style="display:flex;gap:4px;flex-wrap:wrap">
@@ -1117,16 +1243,42 @@ function renderWeekly(){
     bonusList.innerHTML=bonuses.length===0?'<div style="font-size:13px;color:#888">No bonus chores set yet — add them in Manage tab.</div>':
       bonuses.map(c=>{
         const inCalDays=DAYS.filter(d=>(state.calendar[d]||[]).includes(c.id));
-        const diffLabel={easy:'🟢',medium:'🟡',hard:'🔴'};
+        const diffLabel={easy:'Easy',medium:'Medium',hard:'Hard'};
         return`<div class="chore-row">
-          <span style="font-size:18px">${choreIcon(c.name,c.icon)}</span>
-          <div style="flex:1"><div style="font-size:13px;font-weight:500">${c.name} <span style="font-size:10px">${diffLabel[c.diff||'easy']}</span></div>
+          <span style="font-size:18px;flex-shrink:0">${choreIcon(c.name,c.icon)}</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:500">${c.name} <span style="font-size:10px;color:#888">${diffLabel[c.diff||'easy']}</span></div>
           <div style="font-size:10px;color:#888;margin-top:2px">${c.pts} pts · ${inCalDays.length>0?'Scheduled: '+inCalDays.map(d=>d.slice(0,3)).join(', '):'Not in calendar'}</div></div>
           <div style="display:flex;gap:4px;flex-wrap:wrap">
             ${DAYS.map(d=>{const has=(state.calendar[d]||[]).includes(c.id);return`<button class="btn btn-sm${has?' btn-green':''}" style="padding:3px 6px;font-size:10px;min-width:30px" onclick="toggleDayChore('${d}',${c.id})" title="${has?'Remove from '+d:'Add to '+d}">${d.slice(0,2)}</button>`;}).join('')}
           </div>
         </div>`;
       }).join('');
+  }
+
+  // ── DAILY VIEW rendering ──────────────────────────────────
+  if(calView==='daily'){
+    const dayDate=new Date();dayDate.setDate(dayDate.getDate()+(state.dayOffset||0));
+    const dayName=DAYS[dayDate.getDay()===0?6:dayDate.getDay()-1];
+    const scheduledIds=state.calendar[dayName]||[];
+    const tasks=scheduledIds.map(id=>getChore(id)).filter(Boolean);
+    const dg=document.getElementById('daily-grid');
+    if(dg){
+      dg.innerHTML=tasks.length===0
+        ?'<div style="text-align:center;padding:24px;color:#888;font-size:13px">Nothing scheduled for this day.</div>'
+        :tasks.map(c=>{
+          const tc=TYPE_COLORS[c.type]||TYPE_COLORS.responsibility;
+          const isBonus=c.type==='bonus'||c.type==='study-bonus';
+          const pts=isBonus?c.pts:null;
+          const catLabel=c.type==='responsibility'?'Responsibility':c.type==='bonus'?'Bonus chore':c.type==='study-required'?'Homework':'Learning bonus';
+          return`<div style="background:${tc.bg};border:1.5px solid ${tc.border};border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
+            <div style="flex:1">
+              <span style="font-size:20px;margin-right:8px">${choreIcon(c.name,c.icon)}</span><div style="font-size:14px;font-weight:600;color:${tc.text}">${c.name}</div>
+              <div style="font-size:11px;color:${tc.text};opacity:.75;margin-top:2px">${catLabel}${pts?' · +'+pts+' pts':' · miss = -'+(state.rates.penalty||5)+' pts'}</div>
+            </div>
+            <button class="btn btn-sm" onclick="removeFromCalendar('${dayName}',${c.id})" style="font-size:11px;color:#888">Remove</button>
+          </div>`;
+        }).join('');
+    }
   }
 }
 
@@ -1160,7 +1312,7 @@ function renderPool(){
   const cotw=state.cotw;
   const cotwEl=document.getElementById('tasks-cotw-banner');
   if(cotwEl){
-    if(cotw.choreId){const c=getChore(cotw.choreId);cotwEl.innerHTML=c?`<div style="background:linear-gradient(135deg,#EEEDFE,#E6F1FB);border:2px solid #AFA9EC;border-radius:14px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:10px;font-weight:700;color:#3C3489;text-transform:uppercase;letter-spacing:.04em">⭐ Chore of the week</div><div style="font-size:14px;font-weight:600;margin-top:2px">${choreIcon(c.name,c.icon)} ${c.name}</div></div><span class="badge badge-purple">+${cotw.bonusPts} bonus pts</span></div>`:'';}
+    if(cotw.choreId){const c=getChore(cotw.choreId);cotwEl.innerHTML=c?`<div style="background:linear-gradient(135deg,#EEEDFE,#E6F1FB);border:2px solid #AFA9EC;border-radius:14px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:10px;font-weight:700;color:#3C3489;text-transform:uppercase;letter-spacing:.04em">⭐ Chore of the week</div><div style="font-size:14px;font-weight:600;margin-top:2px">${c.name}</div></div><span class="badge badge-purple">+${cotw.bonusPts} bonus pts</span></div>`:'';}
     else cotwEl.innerHTML='';
   }
 
@@ -1176,10 +1328,10 @@ function renderPool(){
       :resps.map(c=>{
         const tc=TYPE_COLORS.responsibility;
         return`<div style="display:flex;align-items:center;gap:10px;background:${tc.bg};border-radius:12px;padding:10px 12px;margin-bottom:8px;border:1.5px solid ${tc.border}">
-          <span style="font-size:22px">${choreIcon(c.name,c.icon)}</span>
+          <span style="font-size:22px;flex-shrink:0">${choreIcon(c.name,c.icon)}</span>
           <div style="flex:1">
             <div style="font-size:13px;font-weight:600;color:${tc.text}">${c.name}</div>
-            <div style="font-size:10px;color:${tc.text};opacity:.8;margin-top:2px">🛡️ Responsibility · miss = -${state.rates.penalty||5} pts</div>
+            <div style="font-size:10px;color:${tc.text};opacity:.8;margin-top:2px">Responsibility · miss = -${state.rates.penalty||5} pts</div>
           </div>
           <div class="today-btns" style="display:flex;gap:5px">
             ${ids.map(k=>`<button class="btn btn-sm btn-red" onclick="markDone('${k}',${c.id},'responsibility')" style="display:flex;align-items:center;gap:3px">
@@ -1194,7 +1346,7 @@ function renderPool(){
   const bonusDiv=document.getElementById('tasks-bonus-list');
   if(bonusDiv){
     const bonuses=state.chores.filter(c=>c.type==='bonus'&&scheduledIds.has(c.id));
-    const diffLabel={easy:'🟢 Easy',medium:'🟡 Medium',hard:'🔴 Hard'};
+    const diffLabel={easy:'Easy',medium:'Medium',hard:'Hard'};
     const tc=TYPE_COLORS.bonus;
     bonusDiv.innerHTML=bonuses.length===0
       ?'<div style="font-size:13px;color:#888;text-align:center;padding:12px">No bonus chores scheduled for today.<br><span style="font-size:11px">Add them in the Weekly tab or use Quick Award below.</span></div>'
@@ -1202,10 +1354,10 @@ function renderPool(){
         const isCOTW=cotw.choreId===c.id;
         const pts=c.pts*(double?2:1)+(isCOTW?cotw.bonusPts:0);
         return`<div style="display:flex;align-items:center;gap:10px;background:${tc.bg};border-radius:12px;padding:10px 12px;margin-bottom:8px;border:1.5px solid ${tc.border}${isCOTW?';border-color:#AFA9EC':''}">
-          <span style="font-size:22px">${choreIcon(c.name,c.icon)}</span>
+          <span style="font-size:22px;flex-shrink:0">${choreIcon(c.name,c.icon)}</span>
           <div style="flex:1">
             <div style="font-size:13px;font-weight:600;color:${tc.text}">${c.name}${isCOTW?' ⭐':''}</div>
-            <div style="font-size:10px;color:${tc.text};opacity:.8;margin-top:2px">⭐ Bonus chore · ${diffLabel[c.diff||'easy']} · +${pts} pts${double?' (2×)':''}${isCOTW?' +'+cotw.bonusPts+' COTW':''}</div>
+            <div style="font-size:10px;color:${tc.text};opacity:.8;margin-top:2px">Bonus · ${diffLabel[c.diff||'easy']} · +${pts} pts${double?' (2×)':''}${isCOTW?' +'+cotw.bonusPts+' COTW':''}</div>
           </div>
           <div class="today-btns" style="display:flex;gap:5px">
             ${ids.map(k=>`<button class="btn btn-sm btn-green" onclick="markDone('${k}',${c.id},'bonus')" style="display:flex;align-items:center;gap:3px">
@@ -1219,7 +1371,7 @@ function renderPool(){
   // Quick award dropdown
   const qk=document.getElementById('quick-kid');const qc=document.getElementById('quick-chore');
   if(qk)qk.innerHTML=ids.map(k=>`<option value="${k}">${state.participants[k].name}</option>`).join('');
-  if(qc){const bonus=state.chores.filter(c=>c.type==='bonus');qc.innerHTML=bonus.map(c=>`<option value="${c.id}">${choreIcon(c.name,c.icon)} ${c.name} (${c.pts}pts)</option>`).join('');}
+  if(qc){const bonus=state.chores.filter(c=>c.type==='bonus');qc.innerHTML=bonus.map(c=>`<option value="${c.id}">${c.name} (${c.pts}pts)</option>`).join('');}
 }
 
 function renderLearning(){
@@ -1234,7 +1386,7 @@ function renderLearning(){
     const hws=state.chores.filter(c=>c.type==='study-required');
     hwList.innerHTML=hws.length===0?'<div style="font-size:13px;color:#888">No homework tasks yet — add them in Manage tab.</div>':
       hws.map(c=>`<div class="chore-row">
-        <span style="font-size:18px">${choreIcon(c.name,c.icon)}</span>
+        <span style="font-size:18px;flex-shrink:0">${choreIcon(c.name,c.icon)}</span>
         <div style="flex:1"><div style="font-size:13px;font-weight:500">${c.name}</div>
         <div style="font-size:10px;color:#888;margin-top:2px">Required · Missing costs ${state.rates.penalty||5} pts</div></div>
         <div class="today-btns" style="display:flex;gap:4px">
@@ -1247,10 +1399,11 @@ function renderLearning(){
   const bonusList=document.getElementById('learning-bonus-list');
   if(bonusList){
     const bonuses=state.chores.filter(c=>c.type==='study-bonus');
-    const diffLabel={easy:'🟢 Easy',medium:'🟡 Medium',hard:'🔴 Hard'};
+    const diffLabel={easy:'Easy',medium:'Medium',hard:'Hard'};
     bonusList.innerHTML=bonuses.length===0?'<div style="font-size:13px;color:#888">No learning bonus tasks yet — add them in Manage tab.</div>':
       bonuses.map(c=>`<div class="chore-row">
-        <span style="font-size:18px">${choreIcon(c.name,c.icon)}</span>
+        <span style="font-size:18px"></span>
+        <span style="font-size:18px;flex-shrink:0">${choreIcon(c.name,c.icon)}</span>
         <div style="flex:1"><div style="font-size:13px;font-weight:500">${c.name}</div>
         <div style="font-size:10px;color:#888;margin-top:2px">${diffLabel[c.diff||'easy']} · +${c.pts} pts · submit a report below</div></div>
         <div class="today-btns" style="display:flex;gap:4px">
@@ -1274,7 +1427,7 @@ function renderGoals(){
 function renderReportCard(){
   const el=document.getElementById('report-card-content');if(!el)return;
   el.innerHTML=pIds().map(k=>{const p=state.participants[k];const total=totalPts(k);const cs=CARD_STYLES[p.theme]||CARD_STYLES.pink;const grade=p.weeklyMissed===0&&(p.weeklyDone||0)>2?'A+':p.weeklyMissed<=1?'A':p.weeklyMissed<=2?'B':'C';const gradeColor={'A+':'#0F6E56','A':'#3B6D11','B':'#854F0B','C':'#A32D2D'}[grade];const gradeEmoji={'A+':'🏆','A':'⭐','B':'👍','C':'💪'}[grade];
-    return`<div class="report-card-box" style="background:${cs.bg};border:${cs.border}"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="display:flex;align-items:center;gap:12px">${kidSVG(p.theme,44)}<div style="font-size:16px;font-weight:700">${p.name}</div></div><div style="text-align:center"><div style="font-size:36px;font-weight:700;color:${gradeColor}">${grade}</div><div style="font-size:18px">${gradeEmoji}</div></div></div><div class="stat-grid"><div class="stat-cell"><div class="stat-num" style="color:#1D9E75">${p.weeklyDone||0}</div><div class="stat-lbl">✅ tasks done</div></div><div class="stat-cell"><div class="stat-num" style="color:#E24B4A">${p.weeklyMissed||0}</div><div class="stat-lbl">❌ missed</div></div><div class="stat-cell"><div class="stat-num" style="color:#185FA5">${p.weeklyLearn||0}</div><div class="stat-lbl">📚 reports</div></div></div><div style="margin-top:10px;font-size:12px;color:#555;display:flex;flex-direction:column;gap:4px"><div>💰 Total: <strong>${total} pts</strong></div><div>🔥 Streak: <strong>${p.streak||0} days</strong>${p.streak>=7?' — On fire! 🔥':p.streak>=3?' — Building! 💪':''}</div>${(p.weeklyMissed||0)===0?'<div style="color:#0F6E56">🌟 No points lost — amazing week!</div>':'<div style="color:#E24B4A">Lost '+((p.weeklyMissed||0)*state.rates.penalty)+' pts from misses</div>'}</div></div>`;}).join('');
+    return`<div class="report-card-box" style="background:${cs.bg};border:${cs.border}"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="display:flex;align-items:center;gap:12px">${kidSVG(p.theme,44)}<div style="font-size:16px;font-weight:700">${p.name}</div></div><div style="text-align:center"><div style="font-size:36px;font-weight:700;color:${gradeColor}">${grade}</div><div style="font-size:18px">${gradeEmoji}</div></div></div><div class="stat-grid"><div class="stat-cell"><div class="stat-num" style="color:#1D9E75">${p.weeklyDone||0}</div><div class="stat-lbl">✅ tasks done</div></div><div class="stat-cell"><div class="stat-num" style="color:#E24B4A">${p.weeklyMissed||0}</div><div class="stat-lbl">❌ missed</div></div><div class="stat-cell"><div class="stat-num" style="color:#185FA5">${p.weeklyLearn||0}</div><div class="stat-lbl">📚 reports</div></div></div><div style="margin-top:10px;font-size:12px;color:#555;display:flex;flex-direction:column;gap:4px"><div>💰 Total: <strong>${total} pts</strong></div><div>🔥 Streak: <strong>${p.streak||0} days</strong>${p.streak>=7?'':p.streak>=3?'':''}</div>${(p.weeklyMissed||0)===0?'<div style="color:#0F6E56">🌟 No points lost — amazing week!</div>':'<div style="color:#E24B4A">Lost '+((p.weeklyMissed||0)*state.rates.penalty)+' pts from misses</div>'}</div></div>`;}).join('');
 }
 
 function approveChore(id){
@@ -1309,9 +1462,9 @@ function renderManage(){
   // init icon picker and pts hint on render
   setTimeout(()=>{togglePtsInput();},50);
   const types={responsibility:'resp',bonus:'bonus','study-required':'study-req','study-bonus':'study-bonus'};
-  const diffLabel={easy:'🟢 Easy',medium:'🟡 Medium',hard:'🔴 Hard'};
-  Object.keys(types).forEach(t=>{const el=document.getElementById(types[t]+'-list');if(!el)return;const items=state.chores.filter(c=>c.type===t);const isBonus=t==='bonus'||t==='study-bonus';el.innerHTML=items.length===0?'<div style="font-size:12px;color:#888">None yet.</div>':items.map(c=>`<div class="chore-row"><span style="font-size:18px">${choreIcon(c.name,c.icon)}</span><div style="flex:1;font-size:13px;font-weight:500">${c.name} <span style="font-size:10px;color:#888;font-weight:400">${diffLabel[c.diff||'easy']}</span></div><div style="display:flex;align-items:center;gap:6px"><span class="badge ${isBonus?'badge-green':'badge-red'}">${isBonus?'+'+c.pts+' pts':'-'+state.rates.penalty+' if missed'}</span><button class="btn btn-sm" onclick="deleteChore(${c.id})">Remove</button></div></div>`).join('');});
-  const cotwSel=document.getElementById('cotw-chore-sel');if(cotwSel){const bonus=state.chores.filter(c=>c.type==='bonus');cotwSel.innerHTML=bonus.map(c=>`<option value="${c.id}"${state.cotw.choreId===c.id?' selected':''}>${choreIcon(c.name,c.icon)} ${c.name}</option>`).join('');const cbp=document.getElementById('cotw-bonus-pts');if(cbp)cbp.value=state.cotw.bonusPts;}
+  const diffLabel={easy:'Easy',medium:'Medium',hard:'Hard'};
+  Object.keys(types).forEach(t=>{const el=document.getElementById(types[t]+'-list');if(!el)return;const items=state.chores.filter(c=>c.type===t);const isBonus=t==='bonus'||t==='study-bonus';el.innerHTML=items.length===0?'<div style="font-size:12px;color:#888">None yet.</div>':items.map(c=>`<div class="chore-row"><span style="font-size:18px;flex-shrink:0">${choreIcon(c.name,c.icon)}</span><div style="flex:1;font-size:13px;font-weight:500">${c.name} <span style="font-size:10px;color:#888;font-weight:400">${diffLabel[c.diff||'easy']}</span></div><div style="display:flex;align-items:center;gap:6px"><span class="badge ${isBonus?'badge-green':'badge-red'}">${isBonus?'+'+c.pts+' pts':'-'+state.rates.penalty+' if missed'}</span><button class="btn btn-sm" onclick="deleteChore(${c.id})">Remove</button></div></div>`).join('');});
+  const cotwSel=document.getElementById('cotw-chore-sel');if(cotwSel){const bonus=state.chores.filter(c=>c.type==='bonus');cotwSel.innerHTML=bonus.map(c=>`<option value="${c.id}"${state.cotw.choreId===c.id?' selected':''}>${c.name}</option>`).join('');const cbp=document.getElementById('cotw-bonus-pts');if(cbp)cbp.value=state.cotw.bonusPts;}
   const sbp=document.getElementById('streak-bonus-pts');if(sbp)sbp.value=state.streakSettings.bonusPts||25;
   const dds=document.getElementById('double-day-sel');if(dds)dds.value=state.streakSettings.doubleDay||'';
   const rps=document.getElementById('report-pts-settings');if(rps){const labels={book:'📖 Book',ted:'🎤 TED talk',documentary:'🎬 Documentary','online-lesson':'💻 Online lesson',podcast:'🎧 Podcast',article:'📰 Article',other:'🌟 Other'};rps.innerHTML=Object.keys(labels).map(k=>`<div class="input-row" style="margin-bottom:6px"><div style="flex:1;font-size:13px">${labels[k]}</div><input type="number" id="rpts-${k}" value="${state.reportPts[k]||20}" style="width:65px" min="1"><span style="font-size:11px;color:#888">pts</span></div>`).join('');}
