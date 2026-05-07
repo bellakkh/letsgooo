@@ -78,7 +78,7 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 .chore-dropdown.open{display:block}
 .chore-group-label{font-size:10px;font-weight:600;color:#888;padding:8px 10px 3px;text-transform:uppercase;letter-spacing:.05em;border-top:1px solid #f5f5f5}
 .chore-group-label:first-child{border-top:none}
-.chore-option{padding:8px 10px;font-size:13px;color:#333;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.chore-option{padding:10px 10px;font-size:13px;color:#333;cursor:pointer;display:flex;justify-content:space-between;align-items:center;min-height:42px}
 .chore-option:hover{background:#f8f7ff}
 .chore-option.already-added{color:#bbb;cursor:default}.chore-option.already-added:hover{background:transparent}
 .progress-bar{background:#f0f0f0;border-radius:99px;height:8px;margin-top:5px}
@@ -156,7 +156,7 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
   #new-chore-type{flex:1 1 calc(50% - 3px) !important}
   #new-chore-diff{flex:1 1 calc(50% - 3px) !important}
   #new-chore-pts{width:70px}
-  #icon-picker{max-height:100px;overflow-y:auto}
+  #icon-picker{}
 
   /* Pool rows stack */
   .pool-row{flex-wrap:wrap;gap:6px}
@@ -469,13 +469,18 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
           <option value="study-bonus">🌟 Learning bonus</option>
         </select>
       </div>
-      <!-- Row 2: icon picker + difficulty + pts + add -->
-      <div class="input-row" style="margin-bottom:8px;align-items:center">
-        <div style="font-size:11px;color:#888;flex:0 0 auto">Icon:</div>
-        <div id="icon-picker" style="display:flex;gap:4px;flex-wrap:wrap;flex:1;align-items:center">
-          <!-- populated by JS -->
+      <!-- Row 2: icon picker (collapsible) -->
+      <div style="margin-bottom:8px">
+        <button type="button" onclick="toggleIconPicker()" id="icon-toggle-btn"
+          style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;border:1.5px solid #e0e0e0;border-radius:10px;background:#fff;cursor:pointer;font-size:13px;color:#555;text-align:left">
+          <span id="icon-preview" style="font-size:20px">✅</span>
+          <span style="flex:1">Choose icon</span>
+          <span id="icon-chevron" style="font-size:11px;color:#888;transition:transform .2s">▼</span>
+        </button>
+        <div id="icon-picker-panel" style="display:none;border:1.5px solid #e0e0e0;border-top:none;border-radius:0 0 10px 10px;padding:10px;background:#fff;max-height:280px;overflow-y:auto">
+          <div id="icon-picker"></div>
         </div>
-        <input type="hidden" id="new-chore-icon" value="">
+        <input type="hidden" id="new-chore-icon" value="✅">
       </div>
       <div class="input-row">
         <select id="new-chore-diff" style="flex:0 0 105px" onchange="togglePtsInput()">
@@ -839,42 +844,52 @@ function buildDropdownHTML(filter,ctx){
   CHORE_SUGGESTIONS.forEach(g=>{
     const items=g.items.filter(i=>!f||i.name.toLowerCase().includes(f));if(!items.length)return;any=true;
     html+=`<div class="chore-group-label">${g.group}</div>`;
-    items.forEach(i=>{const isAdded=added.includes(i.name.toLowerCase());html+=`<div class="chore-option${isAdded?' already-added':''}" onclick="pickSuggestion('${ctx}',${JSON.stringify(i.name)},${JSON.stringify(i.type)},${JSON.stringify(i.diff||'easy')})">${choreIcon(i.name)} ${i.name}${isAdded?' ✓':''}</div>`;});
+    items.forEach(i=>{const isAdded=added.includes(i.name.toLowerCase());html+=`<div class="chore-option${isAdded?' already-added':''}" onclick="pickSuggestion('${ctx}',${JSON.stringify(i.name)},${JSON.stringify(i.type)},${JSON.stringify(i.diff||'easy')})" ontouchend="pickSuggestion('${ctx}',${JSON.stringify(i.name)},${JSON.stringify(i.type)},${JSON.stringify(i.diff||'easy')})">${choreIcon(i.name)} ${i.name}${isAdded?' ✓':''}</div>`;});
   });
   if(!any&&f)html+=`<div class="chore-option" style="font-style:italic;color:#888">Use "${filter}" as custom chore</div>`;
   return html||'<div style="padding:10px;font-size:12px;color:#888">No matches</div>';
 }
+// ── DROPDOWN: works on both mouse and touch ──────────────────
+let _ddPickPending=false; // flag: a pick is in progress, ignore blur
+
 function openDropdown(ctx){
   const dd=document.getElementById(ctx+'-dropdown');
   const inp=document.getElementById(ctx+'-chore-input');
   if(!dd||!inp)return;
   dd.innerHTML=buildDropdownHTML(inp.value,ctx);
   dd.classList.add('open');
-  // Prevent blur from closing before click registers
-  dd.onmousedown=function(e){e.preventDefault();};
 }
 function filterDropdown(ctx){
   const dd=document.getElementById(ctx+'-dropdown');
   const inp=document.getElementById(ctx+'-chore-input');
   if(!dd||!inp)return;
   dd.innerHTML=buildDropdownHTML(inp.value,ctx);
-  dd.classList.add('open');
-  dd.onmousedown=function(e){e.preventDefault();};
+  if(inp.value.trim())dd.classList.add('open');
 }
 function scheduleClose(ctx){
-  const dd=document.getElementById(ctx+'-dropdown');
-  if(dd)dd.classList.remove('open');
+  // Delay close so a tap/click on an option can complete first
+  setTimeout(()=>{
+    if(_ddPickPending)return; // a pick is happening — don't close
+    const dd=document.getElementById(ctx+'-dropdown');
+    if(dd)dd.classList.remove('open');
+  },180);
 }
 function pickSuggestion(ctx,name,type,diff){
-  const inp=document.getElementById(ctx+'-chore-input');if(inp){inp.value=name;inp.focus();}
-  const dd=document.getElementById(ctx+'-dropdown');if(dd)dd.classList.remove('open');
+  _ddPickPending=true;
+  const inp=document.getElementById(ctx+'-chore-input');
+  if(inp)inp.value=name;
+  const dd=document.getElementById(ctx+'-dropdown');
+  if(dd)dd.classList.remove('open');
   if(ctx==='manage'){
     const s=document.getElementById('new-chore-type');if(s)s.value=type;
     const ds=document.getElementById('new-chore-diff');if(ds)ds.value=diff||'easy';
     const ic=document.getElementById('new-chore-icon');if(ic)ic.value=choreIcon(name);
     togglePtsInput();
   }
-  if(ctx==='cal'){const s=document.getElementById('cal-type-sel');if(s)s.value=type;}
+  if(ctx==='cal'){
+    const s=document.getElementById('cal-type-sel');if(s)s.value=type;
+  }
+  setTimeout(()=>{_ddPickPending=false;},250);
 }
 function togglePtsInput(){
   const t=document.getElementById('new-chore-type').value;
@@ -888,10 +903,12 @@ function togglePtsInput(){
     const r=ranges[t]?ranges[t][d]:'';
     hint.textContent=r?'Suggested: '+r:(t==='responsibility'||t==='study-required')?'No pts — penalty only':'';
   }
-  renderIconPicker(t,d);
+  // only re-render icon picker if it's currently open
+  if(_iconPickerOpen)renderIconPicker();
 }
+// _open tracks collapse state per group (first open by default)
 const ICON_GROUPS=[
-  {label:'Bedroom',icons:['🛏️','🧹','👕','👗','👚','🪟','🖊️','☀️','🌙','🛁']},
+  {label:'Bedroom',_open:true,icons:['🛏️','🧹','👕','👗','👚','🪟','🖊️','☀️','🌙','🛁']},
   {label:'Bathroom',icons:['🚿','🪥','🚽','🫧','🧴','🧻','🪞','🧼','💊','🧽']},
   {label:'Kitchen',icons:['🍽️','🍳','🫙','✨','🧽','🗑️','🥪','🧊','💧','🛒','🥗','🥫','👨‍🍳','🍴','🫕']},
   {label:'Laundry',icons:['🧺','👕','👔','🗄️','🌬️','🔴','🪣']},
@@ -905,25 +922,69 @@ const ICON_GROUPS=[
   {label:'Music & art',icons:['🎵','🎶','🎸','🎹','🎺','🎻','🥁','🎤','🎨','🖌️','✂️','🎭']},
   {label:'General',icons:['⭐','✅','❌','⏰','📅','🗓️','🏆','🎯','💰','🎁','🚀','💫','🌈','🔥','💎']},
 ];
-function renderIconPicker(type,diff){
+let _iconPickerOpen=false;
+
+function toggleIconPicker(){
+  _iconPickerOpen=!_iconPickerOpen;
+  const panel=document.getElementById('icon-picker-panel');
+  const chevron=document.getElementById('icon-chevron');
+  if(panel)panel.style.display=_iconPickerOpen?'block':'none';
+  if(chevron)chevron.style.transform=_iconPickerOpen?'rotate(180deg)':'rotate(0deg)';
+  if(_iconPickerOpen)renderIconPicker();
+}
+
+function renderIconPicker(){
   const container=document.getElementById('icon-picker');if(!container)return;
   const currentIcon=document.getElementById('new-chore-icon').value||'✅';
-  container.innerHTML=ICON_GROUPS.map(g=>`
-    <div style="margin-bottom:8px">
-      <div style="font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">${g.label}</div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">
-        ${g.icons.map(ic=>`<button type="button" onclick="selectIcon('${ic}')" style="font-size:17px;width:36px;height:36px;border-radius:8px;border:2px solid ${ic===currentIcon?'#534AB7':'#e0e0e0'};background:${ic===currentIcon?'#EEEDFE':'#fff'};cursor:pointer;flex-shrink:0" title="${ic}">${ic}</button>`).join('')}
+  container.innerHTML=ICON_GROUPS.map((g,gi)=>{
+    const panelId='ig-panel-'+gi;
+    const isOpen=g._open!==false; // default open first group, rest closed
+    return`<div style="margin-bottom:6px;border:1px solid #f0f0f0;border-radius:8px;overflow:hidden">
+      <button type="button" onclick="toggleIconGroup(${gi})" id="ig-hdr-${gi}"
+        style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:#f8f7ff;border:none;cursor:pointer;font-size:11px;font-weight:600;color:#534AB7;text-transform:uppercase;letter-spacing:.04em">
+        <span>${g.label}</span>
+        <span id="ig-chev-${gi}" style="transition:transform .2s;font-size:10px">${isOpen?'▲':'▼'}</span>
+      </button>
+      <div id="${panelId}" style="display:${isOpen?'flex':'none'};flex-wrap:wrap;gap:4px;padding:8px">
+        ${g.icons.map(ic=>`<button type="button" onclick="selectIcon('${ic}')" ontouchend="selectIcon('${ic}')"
+          style="font-size:17px;width:36px;height:36px;border-radius:8px;border:2px solid ${ic===currentIcon?'#534AB7':'#e0e0e0'};background:${ic===currentIcon?'#EEEDFE':'#fff'};cursor:pointer;flex-shrink:0"
+          title="${ic}">${ic}</button>`).join('')}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
+
+function toggleIconGroup(gi){
+  const panelId='ig-panel-'+gi;
+  const panel=document.getElementById(panelId);
+  const chev=document.getElementById('ig-chev-'+gi);
+  if(!panel)return;
+  const isOpen=panel.style.display!=='none';
+  panel.style.display=isOpen?'none':'flex';
+  panel.style.flexWrap='wrap';
+  panel.style.gap='4px';
+  panel.style.padding='8px';
+  if(chev)chev.textContent=isOpen?'▼':'▲';
+  ICON_GROUPS[gi]._open=!isOpen;
+}
+
 function selectIcon(ic){
   document.getElementById('new-chore-icon').value=ic;
-  renderIconPicker(document.getElementById('new-chore-type').value,document.getElementById('new-chore-diff').value);
+  // Update preview button
+  const prev=document.getElementById('icon-preview');
+  if(prev)prev.textContent=ic;
+  // Re-render to update highlights without closing picker
+  renderIconPicker();
 }
 function syncIconFromName(){
   const name=document.getElementById('manage-chore-input').value.trim();
   const icon=CHORE_ICONS[name];
-  if(icon){document.getElementById('new-chore-icon').value=icon;renderIconPicker(document.getElementById('new-chore-type').value,document.getElementById('new-chore-diff').value);}
+  if(icon){
+    document.getElementById('new-chore-icon').value=icon;
+    const prev=document.getElementById('icon-preview');
+    if(prev)prev.textContent=icon;
+    if(_iconPickerOpen)renderIconPicker();
+  }
 }
 
 // ─── CHORE ACTIONS ────────────────────────────────────────────
@@ -938,7 +999,12 @@ function addChoreFromPicker(){
   if(state.chores.find(c=>c.name.toLowerCase()===name.toLowerCase())){alert('"'+name+'" already exists.');return;}
   state.chores.push({id:state.nextId++,name,type,pts,diff,icon});
   document.getElementById('manage-chore-input').value='';
-  document.getElementById('new-chore-icon').value='';
+  document.getElementById('new-chore-icon').value='✅';
+  const prev=document.getElementById('icon-preview');if(prev)prev.textContent='✅';
+  // close picker after adding
+  _iconPickerOpen=false;
+  const panel=document.getElementById('icon-picker-panel');if(panel)panel.style.display='none';
+  const chevron=document.getElementById('icon-chevron');if(chevron)chevron.style.transform='rotate(0deg)';
   save();render();
 }
 function addToCalendarFromPicker(){
