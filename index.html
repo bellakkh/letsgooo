@@ -213,6 +213,68 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
   .stat-num{font-size:16px}
 }
 </style>
+
+<!-- Firebase -->
+<script type="module">
+// ─── FIREBASE CONFIG ─────────────────────────────────────────
+// Replace these values with your own Firebase project config
+// (see setup instructions in the Settings tab after publishing)
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, setDoc, onSnapshot, enableIndexedDbPersistence }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDl8goH5E0j8THMfHWOKlTFIryA6BK_Nm4",
+  authDomain:        "letsgooo-ee999.firebaseapp.com",
+  projectId:         "letsgooo-ee999",
+  storageBucket:     "letsgooo-ee999.firebasestorage.app",
+  messagingSenderId: "420803347169",
+  appId:             "1:420803347169:web:f8473878572cc417e4eda0"
+};
+
+// Detect whether Firebase has been configured
+const FB_CONFIGURED = !FIREBASE_CONFIG.apiKey.includes('PASTE_YOUR');
+
+let db = null;
+let _fbUnsubscribe = null;
+
+if (FB_CONFIGURED) {
+  try {
+    const app = initializeApp(FIREBASE_CONFIG);
+    db = getFirestore(app);
+    // Enable offline persistence so the app works without internet
+    enableIndexedDbPersistence(db).catch(() => {});
+  } catch(e) {
+    console.warn('Firebase init failed:', e);
+    db = null;
+  }
+}
+
+// ─── EXPOSE to main script ────────────────────────────────────
+window._fb = {
+  configured: FB_CONFIGURED,
+  save: async (state) => {
+    if (!db) return;
+    try {
+      await setDoc(doc(db, 'letsgooo', 'state'), state);
+    } catch(e) {
+      console.warn('Firebase save failed:', e);
+    }
+  },
+  listen: (onUpdate) => {
+    if (!db) return;
+    if (_fbUnsubscribe) _fbUnsubscribe();
+    _fbUnsubscribe = onSnapshot(doc(db, 'letsgooo', 'state'), (snap) => {
+      if (snap.exists()) onUpdate(snap.data());
+    }, (err) => console.warn('Firebase listen error:', err));
+  },
+  stop: () => { if (_fbUnsubscribe) _fbUnsubscribe(); }
+};
+
+// Signal to main script that Firebase module loaded
+window._fbReady = true;
+document.dispatchEvent(new Event('fb-ready'));
+</script>
 </head>
 <body>
 
@@ -247,7 +309,8 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
   <div style="font-size:26px">🚀</div>
   <div class="appname">Let's Gooo!</div>
   <div style="font-size:12px;color:#534AB7;margin-left:4px">Family tracker</div>
-  <div id="lock-status" class="lock-indicator" style="margin-left:auto">🔒 Locked</div>
+  <div id="sync-status" style="font-size:11px;color:#888;padding:3px 9px;border:1.5px solid #e0e0e0;border-radius:99px;background:#fff">💾 Local only</div>
+  <div id="lock-status" class="lock-indicator">🔒 Locked</div>
 </div>
 
 <div class="tabs" id="main-tabs">
@@ -757,28 +820,114 @@ let pinEntry={target:null,digits:[]};
 let dropdownClose={};
 
 // ─── PERSISTENCE ─────────────────────────────────────────────
-function save(){try{localStorage.setItem('letsgooo_v1',JSON.stringify(state))}catch(e){}}
-function load(){
-  try{
-    const d=localStorage.getItem('letsgooo_v1');
-    if(!d)return;
-    const s=JSON.parse(d);
-    if(!s.participants)return;
-    if(!s.participantOrder)s.participantOrder=Object.keys(s.participants);
-    if(!s.sitePassword)s.sitePassword='1216';
-    Object.keys(s.participants).forEach(k=>{
-      const p=s.participants[k];
-      ['chorePoints','learnPoints','streak','weeklyDone','weeklyMissed','weeklyLearn','learnDone','bonusDone','missed'].forEach(f=>{if(p[f]===undefined)p[f]=0;});
-      if(!p.theme)p.theme='pink';
-    });
-    if(!s.learningLog)s.learningLog=[];if(!s.pendingReports)s.pendingReports=[];if(!s.pendingChores)s.pendingChores=[];
-    if(!s.reportPts)s.reportPts={...DEFAULT_REPORT_PTS};if(!s.goals)s.goals=[];
-    if(!s.cotw)s.cotw={choreId:null,bonusPts:20};if(!s.streakSettings)s.streakSettings={bonusPts:25,doubleDay:''};
-    if(!s.nextParticipantId)s.nextParticipantId=3;
-    state=s;
-  }catch(e){}
+let _saveTimer = null;
+let _fbListening = false;
+
+function save(){
+  // Always save to localStorage as fallback
+  try { localStorage.setItem('letsgooo_v1', JSON.stringify(state)); } catch(e) {}
+  // Debounce Firebase saves (wait 800ms after last change)
+  if (window._fb && window._fb.configured) {
+    clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(() => {
+      window._fb.save(JSON.parse(JSON.stringify(state)));
+    }, 800);
+  }
+  updateSyncStatus();
 }
+
+function migrateState(s) {
+  if (!s.participants) return false;
+  if (!s.participantOrder) s.participantOrder = Object.keys(s.participants);
+  if (!s.sitePassword) s.sitePassword = '1216';
+  Object.keys(s.participants).forEach(k => {
+    const p = s.participants[k];
+    ['chorePoints','learnPoints','streak','weeklyDone','weeklyMissed','weeklyLearn','learnDone','bonusDone','missed']
+      .forEach(f => { if (p[f] === undefined) p[f] = 0; });
+    if (!p.theme) p.theme = 'pink';
+  });
+  if (!s.learningLog) s.learningLog = [];
+  if (!s.pendingReports) s.pendingReports = [];
+  if (!s.pendingChores) s.pendingChores = [];
+  if (!s.reportPts) s.reportPts = {...DEFAULT_REPORT_PTS};
+  if (!s.goals) s.goals = [];
+  if (!s.cotw) s.cotw = {choreId:null, bonusPts:20};
+  if (!s.streakSettings) s.streakSettings = {bonusPts:25, doubleDay:''};
+  if (!s.nextParticipantId) s.nextParticipantId = 3;
+  if (s.weekOffset === undefined) s.weekOffset = 0;
+  if (!s.calView) s.calView = 'weekly';
+  if (s.dayOffset === undefined) s.dayOffset = 0;
+  if (!s.rates) s.rates = {screen:10,money:10,penalty:5,savingBonus50:3,savingBonus100:5};
+  if (s.rates.savingBonus50 === undefined) { s.rates.savingBonus50 = 3; s.rates.savingBonus100 = 5; }
+  if (!s.pointsEdits) s.pointsEdits = [];
+  return true;
+}
+
+function load(){
+  try {
+    const d = localStorage.getItem('letsgooo_v1');
+    if (!d) return;
+    const s = JSON.parse(d);
+    if (migrateState(s)) state = s;
+  } catch(e) {}
+}
+
+function startFirebaseSync() {
+  if (_fbListening || !window._fb || !window._fb.configured) return;
+  _fbListening = true;
+  showSyncStatus('syncing');
+  window._fb.listen((remoteState) => {
+    if (!remoteState || !remoteState.participants) return;
+    // Merge: remote wins for shared data, keep local UI state
+    const uiFields = ['weekOffset','calView','dayOffset'];
+    const localUI = {};
+    uiFields.forEach(f => { localUI[f] = state[f]; });
+    migrateState(remoteState);
+    state = remoteState;
+    uiFields.forEach(f => { if (localUI[f] !== undefined) state[f] = localUI[f]; });
+    // Also save to localStorage
+    try { localStorage.setItem('letsgooo_v1', JSON.stringify(state)); } catch(e) {}
+    render();
+    showSyncStatus('synced');
+  });
+}
+
+function updateSyncStatus() {
+  if (window._fb && window._fb.configured) showSyncStatus('saving');
+  else showSyncStatus('local');
+}
+
+function showSyncStatus(status) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  const configs = {
+    synced:  { text: '☁️ Synced',   color: '#0F6E56' },
+    saving:  { text: '☁️ Saving…', color: '#854F0B' },
+    syncing: { text: '☁️ Syncing…',color: '#185FA5' },
+    local:   { text: '💾 Local only', color: '#888' },
+    offline: { text: '📵 Offline',  color: '#A32D2D' },
+    setup:   { text: '⚠️ Firebase not set up', color: '#A32D2D' },
+  };
+  const cfg = configs[status] || configs.local;
+  el.textContent = cfg.text;
+  el.style.color = cfg.color;
+}
+
 load();
+
+// Start Firebase sync once its module finishes loading
+document.addEventListener('fb-ready', () => {
+  if (window._fb && window._fb.configured) {
+    startFirebaseSync();
+  } else {
+    showSyncStatus('setup');
+  }
+});
+// If module already loaded before listener attached
+if (window._fbReady) {
+  if (window._fb && window._fb.configured) startFirebaseSync();
+  else showSyncStatus('setup');
+}
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function totalPts(k){const p=state.participants[k];return(p.chorePoints||0)+(p.learnPoints||0);}
@@ -1151,7 +1300,15 @@ function changeSitePassword(){
 function exportData(){const data=JSON.stringify(state,null,2);const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='letsgooo-backup.json';a.click();URL.revokeObjectURL(url);}
 function importDataPrompt(){const input=document.createElement('input');input.type='file';input.accept='.json';input.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const s=JSON.parse(ev.target.result);if(!s.participants)throw new Error('Invalid');if(confirm('Import this backup? Current data will be replaced.')){state=s;save();render();alert('Data imported successfully! ✅');};}catch(err){alert('Invalid backup file.');}};r.readAsText(f);};input.click();}
 function resetAllPoints(){if(!confirm('Reset ALL points for ALL participants? This cannot be undone.'))return;pIds().forEach(k=>{['chorePoints','learnPoints','bonusDone','learnDone','missed','streak','weeklyDone','weeklyMissed','weeklyLearn'].forEach(f=>state.participants[k][f]=0);});save();render();alert('All points reset. ✅');}
-function resetEverything(){if(!confirm('RESET EVERYTHING? All data will be deleted. This cannot be undone.'))return;if(!confirm('Are you absolutely sure?'))return;localStorage.removeItem('letsgooo_v1');location.reload();}
+function resetEverything(){
+  if(!confirm('RESET EVERYTHING? All data will be deleted. This cannot be undone.'))return;
+  if(!confirm('Are you absolutely sure?'))return;
+  localStorage.removeItem('letsgooo_v1');
+  if(window._fb&&window._fb.configured){
+    window._fb.save({_deleted:true,ts:Date.now()});
+    setTimeout(()=>location.reload(),600);
+  } else { location.reload(); }
+}
 
 // ─── RENDER ───────────────────────────────────────────────────
 function render(){renderDashboard();renderWeekly();renderPool();renderLearning();renderGoals();renderReportCard();renderApprovals();renderManage();renderRewards();renderSettings();updateLockStatus();}
@@ -1590,7 +1747,29 @@ function updateEditPreview(){
 }
 
 function renderSettings(){
-  if(!unlocked.settings)return;const ids=pIds();const pl=document.getElementById('participants-list');
+  if(!unlocked.settings)return;
+  // Firebase status block
+  const fsb=document.getElementById('firebase-status-block');
+  if(fsb){
+    const configured=window._fb&&window._fb.configured;
+    fsb.innerHTML=configured
+      ?`<div style="background:#EAF3DE;border-radius:10px;padding:12px;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:600;color:#0F6E56">☁️ Firebase is connected</div>
+          <div style="font-size:12px;color:#3B6D11;margin-top:4px">All devices sync automatically. Changes appear on all phones and laptops in real time.</div>
+        </div>`
+      :`<div style="background:#f8f7ff;border-radius:10px;padding:12px;margin-bottom:12px;border:1.5px solid #CECBF6">
+          <div style="font-size:13px;font-weight:600;color:#3C3489;margin-bottom:8px">Setup required — 3 steps</div>
+          <div style="font-size:12px;color:#555;line-height:1.7">
+            <b>Step 1:</b> Go to <a href="https://console.firebase.google.com" target="_blank" style="color:#185FA5">console.firebase.google.com</a> → Create a project (free)<br>
+            <b>Step 2:</b> In the project → Firestore Database → Create database → Start in <b>test mode</b><br>
+            <b>Step 3:</b> Project Settings → Web app → Register app → Copy the config values<br><br>
+            Then open your <code style="background:#f0f0f0;padding:1px 5px;border-radius:4px">index.html</code> file in a text editor,
+            find <code style="background:#f0f0f0;padding:1px 5px;border-radius:4px">FIREBASE_CONFIG</code> near the top,
+            and paste in your values. Re-upload to GitHub.
+          </div>
+        </div>
+        <div style="font-size:12px;color:#888">Currently running in local-only mode. Data is saved per device.</div>`;
+  }const ids=pIds();const pl=document.getElementById('participants-list');
   if(pl){
     const themes=['pink','gold','blue','green','purple'];const themeLabels={pink:'🩷 Pink dragon',gold:'🧡 Golden lion',blue:'💙 Blue whale',green:'💚 Green turtle',purple:'💜 Purple owl'};
     pl.innerHTML=ids.map(k=>{const p=state.participants[k];return`<div class="participant-row"><div style="flex-shrink:0">${kidSVG(p.theme,42)}</div><div style="flex:1"><div class="input-row" style="margin-bottom:6px"><input type="text" id="pname-${k}" value="${p.name}" style="flex:1;font-weight:600" placeholder="Name"><button class="btn btn-sm btn-green" onclick="saveParticipantName('${k}')">Save</button></div><div style="font-size:11px;color:#888;margin-bottom:6px">Theme:</div><select onchange="saveParticipantTheme('${k}',this.value)" style="font-size:12px;height:32px">${themes.map(t=>`<option value="${t}"${p.theme===t?' selected':''}>${themeLabels[t]}</option>`).join('')}</select></div><div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end"><div style="font-size:12px;color:#888">${totalPts(k)} pts</div>${ids.length>1?`<button class="btn btn-red btn-sm" onclick="removeParticipant('${k}')">Remove</button>`:''}</div></div>`;}).join('')||'<div style="color:#888;font-size:13px">No participants yet.</div>';
