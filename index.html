@@ -121,47 +121,6 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 .color-swatch.selected{border-color:#333;transform:scale(1.15)}
 
 /* ── BEAR TAB ─────────────────────────────────────────────── */
-.bear-filter-btn{transition:all .15s}
-.bear-filter-btn.active{background:#EEEDFE !important;border-color:#AFA9EC !important;color:#3C3489 !important;font-weight:600 !important}
-/* Table rows */
-.bear-tr{border-bottom:1px solid #f0f0f0;transition:background .15s}
-.bear-tr:last-child{border-bottom:none}
-.bear-tr:hover{background:#fafafa}
-.bear-tr.done-row{opacity:.6}
-.bear-tr.done-row .bear-task-name{text-decoration:line-through;color:#aaa}
-.bear-td{padding:10px 12px;vertical-align:middle;font-size:13px}
-/* Priority badge */
-.bear-pri{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap}
-.bear-pri.high  {background:#F3EEFF;color:#534AB7;border:1px solid #CECBF6}
-.bear-pri.medium{background:#FEF0F0;color:#A32D2D;border:1px solid #F7C1C1}
-.bear-pri.low   {background:#FFFBE6;color:#854F0B;border:1px solid #F7E08A}
-/* Due date */
-.bear-due{font-size:12px;white-space:nowrap}
-.bear-due.overdue{color:#E24B4A;font-weight:600}
-.bear-due.due-today{color:#E24B4A;font-weight:600}
-.bear-due.due-soon{color:#854F0B}
-.bear-due.done-due{color:#aaa}
-/* Reply field */
-.bear-reply-input{width:100%;min-width:120px;padding:5px 8px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:12px;font-family:inherit;resize:none;height:34px;overflow:hidden;background:#fff;color:#333;transition:border .2s}
-.bear-reply-input:focus{border-color:#AFA9EC;outline:none}
-/* Month calendar */
-.bear-month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-.bear-cal-hdr{text-align:center;font-size:10px;font-weight:700;color:#888;padding:4px 0;text-transform:uppercase}
-.bear-cal-day{text-align:center;padding:5px 2px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;color:#333;border:1.5px solid transparent;transition:all .15s;position:relative;min-height:34px}
-.bear-cal-day:hover{background:#f0f0f0}
-.bear-cal-day.today{background:linear-gradient(135deg,#EEEDFE,#E6F1FB);border-color:#AFA9EC;color:#3C3489;font-weight:700}
-.bear-cal-day.selected{background:#534AB7;color:#fff;border-color:#534AB7}
-.bear-cal-day.selected.today{background:#3C3489}
-.bear-cal-day.other-month{color:#ccc}
-.bear-cal-day.has-tasks::after{content:'';display:block;width:5px;height:5px;border-radius:50%;background:#534AB7;margin:2px auto 0}
-.bear-cal-day.selected::after{background:#fff}
-.bear-cal-day.has-overdue::after{background:#E24B4A}
-/* Day tasks in calendar */
-.bear-day-task-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;margin-bottom:5px}
-.bear-day-task-item.high  {background:#F3EEFF;border:1px solid #CECBF6}
-.bear-day-task-item.medium{background:#FEF0F0;border:1px solid #F7C1C1}
-.bear-day-task-item.low   {background:#FFFBE6;border:1px solid #F7E08A}
-.bear-day-task-item.done  {background:#f5f5f5;border:1px solid #e0e0e0;opacity:.65}
 .bear-task{border-radius:12px;padding:12px 14px;margin-bottom:8px;border:1.5px solid transparent;transition:all .2s}
 .bear-task.high{background:#F3EEFF;border-color:#AFA9EC}
 .bear-task.medium{background:#FEF0F0;border-color:#F7C1C1}
@@ -749,8 +708,6 @@ document.dispatchEvent(new Event('fb-ready'));
 <div id="tab-bear" class="section">
   <div id="bear-pin-wall"></div>
   <div id="bear-content" style="display:none">
-
-    <!-- Header -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <div style="display:flex;align-items:center;gap:10px">
         <div style="font-size:36px">🐻</div>
@@ -762,84 +719,54 @@ document.dispatchEvent(new Event('fb-ready'));
       <button class="btn btn-amber btn-sm" onclick="lockTab('bear')">🔒 Lock</button>
     </div>
 
-    <!-- Calendar: month navigation + week strip + day task list -->
-    <div class="card" style="margin-bottom:12px">
-      <!-- Month nav -->
+    <!-- Bear mini calendar -->
+    <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <button class="btn btn-sm" onclick="bearNavMonth(-1)">← Prev</button>
+        <button class="btn btn-sm" onclick="bearNavDay(-1)">← Prev</button>
         <div style="text-align:center">
-          <div style="font-size:15px;font-weight:700;color:#3C3489" id="bear-month-label"></div>
+          <div style="font-size:14px;font-weight:600;color:#3C3489" id="bear-day-label"></div>
+          <div style="font-size:11px;color:#888" id="bear-day-date"></div>
         </div>
-        <button class="btn btn-sm" onclick="bearNavMonth(1)">Next →</button>
+        <button class="btn btn-sm" onclick="bearNavDay(1)">Next →</button>
       </div>
-      <!-- Month grid -->
-      <div id="bear-month-grid" style="margin-bottom:10px"></div>
-      <!-- Today button -->
-      <div style="text-align:center;margin-bottom:10px">
-        <button class="btn btn-sm" onclick="bearGoToday()" id="bear-today-btn"
-          style="font-size:11px;color:#534AB7;border-color:#AFA9EC;display:none">Today</button>
+      <div id="bear-today-btn-wrap" style="text-align:center;margin-bottom:8px">
+        <button class="btn btn-sm" onclick="bearGoToday()" id="bear-today-btn" style="font-size:11px;color:#534AB7;border-color:#AFA9EC;display:none">Today</button>
       </div>
-      <!-- Selected day tasks -->
-      <div id="bear-day-tasks-section" style="border-top:1.5px solid #f0f0f0;padding-top:10px">
-        <div style="font-size:12px;font-weight:600;color:#3C3489;margin-bottom:8px" id="bear-day-label"></div>
-        <div id="bear-day-tasks"></div>
-      </div>
+      <!-- Week strip for Bear -->
+      <div id="bear-week-strip" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px"></div>
     </div>
 
     <!-- Add new task -->
     <div class="card">
       <div class="section-title">➕ Add task</div>
       <div class="input-row" style="margin-bottom:8px">
-        <input type="text" id="bear-task-text" placeholder="Task description..." style="flex:2;min-width:0">
+        <input type="text" id="bear-task-text" placeholder="Task description..." style="flex:2">
         <select id="bear-task-importance" style="flex:0 0 130px">
           <option value="high">🟣 High</option>
           <option value="medium" selected>🔴 Medium</option>
           <option value="low">🟡 Low</option>
         </select>
       </div>
-      <div class="input-row" style="margin-bottom:8px">
-        <label style="font-size:12px;color:#888;flex:0 0 auto">Due date:</label>
-        <input type="date" id="bear-task-due" style="flex:1;min-width:0;height:36px;padding:0 10px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fff;color:#333">
-        <button class="btn btn-purple" onclick="addBearTask()" style="white-space:nowrap;flex:0 0 auto">+ Add</button>
-      </div>
       <div class="input-row">
-        <input type="text" id="bear-task-comment" placeholder="Comment (optional)..." style="flex:1">
+        <div style="font-size:12px;color:#888;flex:0 0 auto">Due:</div>
+        <input type="date" id="bear-task-due" style="flex:1;height:36px;padding:0 10px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:13px">
+        <input type="text" id="bear-task-comment" placeholder="Comment (optional)..." style="flex:2">
+        <button class="btn btn-purple" onclick="addBearTask()" style="white-space:nowrap">+ Add</button>
       </div>
     </div>
 
-    <!-- All tasks table -->
-    <div class="card" style="padding:0;overflow:hidden">
-      <!-- Table header + filter -->
-      <div style="padding:12px 14px;border-bottom:1.5px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <div style="font-size:14px;font-weight:600;color:#1a1a2e">All Tasks</div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap">
-          <button class="btn btn-sm bear-filter-btn" id="bf-all"    onclick="setBearFilter('all')"    style="font-size:11px">All</button>
-          <button class="btn btn-sm bear-filter-btn" id="bf-active" onclick="setBearFilter('active')" style="font-size:11px">Active</button>
-          <button class="btn btn-sm bear-filter-btn" id="bf-done"   onclick="setBearFilter('done')"   style="font-size:11px">Done</button>
-          <button class="btn btn-sm bear-filter-btn" id="bf-high"   onclick="setBearFilter('high')"   style="font-size:11px;color:#534AB7">🟣</button>
-          <button class="btn btn-sm bear-filter-btn" id="bf-medium" onclick="setBearFilter('medium')" style="font-size:11px;color:#A32D2D">🔴</button>
-          <button class="btn btn-sm bear-filter-btn" id="bf-low"    onclick="setBearFilter('low')"    style="font-size:11px;color:#854F0B">🟡</button>
-        </div>
-      </div>
-      <!-- Scrollable table -->
-      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
-        <table id="bear-task-table" style="width:100%;border-collapse:collapse;min-width:640px">
-          <thead>
-            <tr style="background:#f8f7ff">
-              <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #f0f0f0;white-space:nowrap">Task name</th>
-              <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #f0f0f0;white-space:nowrap">Comment</th>
-              <th style="padding:10px 12px;text-align:center;font-size:11px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #f0f0f0;white-space:nowrap">Priority</th>
-              <th style="padding:10px 12px;text-align:center;font-size:11px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #f0f0f0;white-space:nowrap">Due date</th>
-              <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #f0f0f0;white-space:nowrap">Reply / Update</th>
-              <th style="padding:10px 12px;text-align:center;font-size:11px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #f0f0f0;white-space:nowrap">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="bear-task-list"></tbody>
-        </table>
-        <div id="bear-task-empty" style="display:none;text-align:center;padding:28px;color:#888;font-size:13px">No tasks yet — add one above! 🐻</div>
-      </div>
+    <!-- Filter bar -->
+    <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+      <button class="btn btn-sm" id="bf-all" onclick="setBearFilter('all')" style="background:#EEEDFE;border-color:#AFA9EC;color:#3C3489;font-weight:600">All</button>
+      <button class="btn btn-sm" id="bf-active" onclick="setBearFilter('active')">Active</button>
+      <button class="btn btn-sm" id="bf-done" onclick="setBearFilter('done')">Done</button>
+      <button class="btn btn-sm" id="bf-high" onclick="setBearFilter('high')" style="border-color:#AFA9EC;color:#534AB7">🟣 High</button>
+      <button class="btn btn-sm" id="bf-medium" onclick="setBearFilter('medium')" style="border-color:#E24B4A;color:#A32D2D">🔴 Medium</button>
+      <button class="btn btn-sm" id="bf-low" onclick="setBearFilter('low')" style="border-color:#BA7517;color:#854F0B">🟡 Low</button>
     </div>
 
+    <!-- Task list -->
+    <div id="bear-task-list"></div>
   </div>
 </div>
 </div><!-- end #app -->
@@ -1022,8 +949,6 @@ function migrateState(s) {
   if (!s.pointsEdits) s.pointsEdits = [];
   if (!s.bearTasks) s.bearTasks = [];
   if (s.bearDayOffset === undefined) s.bearDayOffset = 0;
-  // Migrate old bearTasks to add reply field
-  if (s.bearTasks) s.bearTasks.forEach(t => { if (t.reply === undefined) t.reply = ''; });
   return true;
 }
 
@@ -1942,300 +1867,199 @@ function renderSettings(){
 
 // ─── BEAR TAB ────────────────────────────────────────────────
 let _bearFilter = 'all';
-let _bearYear = new Date().getFullYear();
-let _bearMonth = new Date().getMonth(); // 0-indexed
-let _bearSelectedDate = null; // Date object for selected day
 
-// Init selected date to today
-(function(){ const d=new Date(); d.setHours(0,0,0,0); _bearSelectedDate=d; })();
-
-function bearNavMonth(dir){
-  _bearMonth += dir;
-  if(_bearMonth > 11){_bearMonth=0; _bearYear++;}
-  if(_bearMonth < 0){_bearMonth=11; _bearYear--;}
+function bearNavDay(dir) {
+  state.bearDayOffset = (state.bearDayOffset || 0) + dir;
   save(); renderBear();
 }
-
-function bearGoToday(){
-  const t=new Date(); t.setHours(0,0,0,0);
-  _bearSelectedDate=t;
-  _bearYear=t.getFullYear(); _bearMonth=t.getMonth();
+function bearGoToday() {
+  state.bearDayOffset = 0;
   save(); renderBear();
 }
-
-function bearSelectDay(dateStr){
-  const d=new Date(dateStr+'T00:00:00'); d.setHours(0,0,0,0);
-  _bearSelectedDate=d;
-  // If selected day is not in current month view, shift to that month
-  _bearYear=d.getFullYear(); _bearMonth=d.getMonth();
-  renderBear();
+function setBearFilter(f) {
+  _bearFilter = f;
+  // Update filter button styles
+  ['all','active','done','high','medium','low'].forEach(id => {
+    const btn = document.getElementById('bf-' + id);
+    if (!btn) return;
+    const active = id === f;
+    btn.style.background = active ? '#EEEDFE' : '';
+    btn.style.borderColor = active ? '#AFA9EC' : '';
+    btn.style.color = active ? '#3C3489' : '';
+    btn.style.fontWeight = active ? '600' : '';
+  });
+  renderBearTaskList();
 }
 
-function addBearTask(){
-  const text=(document.getElementById('bear-task-text').value||'').trim();
-  if(!text){alert('Please enter a task description.');return;}
-  const importance=document.getElementById('bear-task-importance').value;
-  const due=document.getElementById('bear-task-due').value;
-  const comment=(document.getElementById('bear-task-comment').value||'').trim();
-  if(!state.bearTasks)state.bearTasks=[];
-  // If a due date is set, use it as assigned day; else use selected/today
-  let assignedDay;
-  if(due){
-    const d=new Date(due+'T00:00:00'); d.setHours(0,0,0,0);
-    assignedDay=d.toDateString();
-    // Navigate calendar to that date
-    _bearSelectedDate=d; _bearYear=d.getFullYear(); _bearMonth=d.getMonth();
-  } else {
-    assignedDay=(_bearSelectedDate||new Date()).toDateString();
-  }
+function bearDayDate(offset) {
+  const d = new Date();
+  d.setDate(d.getDate() + (offset || 0));
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function addBearTask() {
+  const text = (document.getElementById('bear-task-text').value || '').trim();
+  if (!text) { alert('Please enter a task description.'); return; }
+  const importance = document.getElementById('bear-task-importance').value;
+  const due = document.getElementById('bear-task-due').value;
+  const comment = (document.getElementById('bear-task-comment').value || '').trim();
+  if (!state.bearTasks) state.bearTasks = [];
   state.bearTasks.push({
-    id:Date.now(), text, importance, due, comment,
-    done:false, reply:'',
-    createdDate:new Date().toISOString(), doneDate:null,
-    assignedDay
+    id: Date.now(),
+    text,
+    importance,
+    due,
+    comment,
+    done: false,
+    createdDate: new Date().toISOString(),
+    doneDate: null,
+    assignedDay: bearDayDate(state.bearDayOffset || 0).toDateString()
   });
-  document.getElementById('bear-task-text').value='';
-  document.getElementById('bear-task-comment').value='';
-  document.getElementById('bear-task-due').value='';
+  document.getElementById('bear-task-text').value = '';
+  document.getElementById('bear-task-comment').value = '';
+  document.getElementById('bear-task-due').value = '';
   save(); renderBear();
 }
 
-function toggleBearDone(id){
-  const task=(state.bearTasks||[]).find(t=>t.id===id);
-  if(!task)return;
-  task.done=!task.done;
-  task.doneDate=task.done?new Date().toLocaleDateString():null;
+function toggleBearDone(id) {
+  const task = (state.bearTasks || []).find(t => t.id === id);
+  if (!task) return;
+  task.done = !task.done;
+  task.doneDate = task.done ? new Date().toLocaleDateString() : null;
   save(); renderBear();
 }
 
-function deleteBearTask(id){
-  if(!confirm('Delete this task?'))return;
-  state.bearTasks=(state.bearTasks||[]).filter(t=>t.id!==id);
+function deleteBearTask(id) {
+  if (!confirm('Delete this task?')) return;
+  state.bearTasks = (state.bearTasks || []).filter(t => t.id !== id);
   save(); renderBear();
 }
 
-function saveBearReply(id,val){
-  const task=(state.bearTasks||[]).find(t=>t.id===id);
-  if(!task)return;
-  task.reply=val;
-  save();
+function editBearComment(id) {
+  const task = (state.bearTasks || []).find(t => t.id === id);
+  if (!task) return;
+  const val = prompt('Edit comment:', task.comment || '');
+  if (val === null) return;
+  task.comment = val.trim();
+  save(); renderBear();
 }
 
-function saveBearComment(id,val){
-  const task=(state.bearTasks||[]).find(t=>t.id===id);
-  if(!task)return;
-  task.comment=val;
-  save();
-}
+function renderBear() {
+  if (!unlocked.bear) return;
+  const offset = state.bearDayOffset || 0;
+  const selectedDate = bearDayDate(offset);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const isToday = selectedDate.getTime() === today.getTime();
 
-function setBearFilter(f){
-  _bearFilter=f;
-  document.querySelectorAll('.bear-filter-btn').forEach(btn=>{
-    btn.classList.toggle('active', btn.id==='bf-'+f);
-  });
-  renderBearTable();
-}
+  // Day header
+  const dayLabel = document.getElementById('bear-day-label');
+  const dayDate = document.getElementById('bear-day-date');
+  const todayBtn = document.getElementById('bear-today-btn');
+  if (dayLabel) dayLabel.textContent = isToday ? 'Today' :
+    selectedDate.toLocaleDateString('default', { weekday: 'long' });
+  if (dayDate) dayDate.textContent = selectedDate.toLocaleDateString('default',
+    { month: 'long', day: 'numeric', year: 'numeric' });
+  if (todayBtn) todayBtn.style.display = isToday ? 'none' : 'inline-block';
 
-function bearDueStatus(due, done){
-  if(!due) return {label:'—', cls:''};
-  const d=new Date(due+'T00:00:00'); d.setHours(0,0,0,0);
-  const today=new Date(); today.setHours(0,0,0,0);
-  const diff=Math.ceil((d-today)/86400000);
-  const fmt=d.toLocaleDateString('default',{month:'short',day:'numeric',year:'numeric'});
-  if(done) return {label:fmt, cls:'done-due'};
-  if(diff<0) return {label:'Overdue: '+fmt, cls:'overdue'};
-  if(diff===0) return {label:'Due today', cls:'due-today'};
-  if(diff===1) return {label:'Tomorrow', cls:'due-soon'};
-  if(diff<=3) return {label:fmt, cls:'due-soon'};
-  return {label:fmt, cls:''};
-}
-
-function renderBear(){
-  if(!unlocked.bear)return;
-
-  const today=new Date(); today.setHours(0,0,0,0);
-  const sel=_bearSelectedDate||today;
-  const isCurrentMonth=(_bearYear===new Date().getFullYear()&&_bearMonth===new Date().getMonth());
-
-  // Month label
-  const ml=document.getElementById('bear-month-label');
-  if(ml)ml.textContent=new Date(_bearYear,_bearMonth,1).toLocaleDateString('default',{month:'long',year:'numeric'});
-
-  // Today btn
-  const tb=document.getElementById('bear-today-btn');
-  if(tb)tb.style.display=isCurrentMonth&&sel.getTime()===today.getTime()?'none':'inline-block';
-
-  // ── Month calendar grid ──
-  const mg=document.getElementById('bear-month-grid');
-  if(mg){
-    const tasks=state.bearTasks||[];
-    // Build a map: dateString → array of tasks
-    const taskMap={};
-    tasks.forEach(t=>{
-      const key=t.assignedDay; // toDateString
-      if(!taskMap[key])taskMap[key]=[];
-      taskMap[key].push(t);
-    });
-    // Also index by due date
-    tasks.forEach(t=>{
-      if(t.due){
-        const dk=new Date(t.due+'T00:00:00'); dk.setHours(0,0,0,0);
-        const key=dk.toDateString();
-        if(!taskMap[key])taskMap[key]=[];
-        if(!taskMap[key].find(x=>x.id===t.id))taskMap[key].push(t);
-      }
-    });
-
-    const firstDay=new Date(_bearYear,_bearMonth,1);
-    const lastDay=new Date(_bearYear,_bearMonth+1,0);
-    // Monday=0 start
-    let startDow=firstDay.getDay()-1; if(startDow<0)startDow=6;
-
-    let html='<div class="bear-month-grid">';
-    ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(d=>{
-      html+=`<div class="bear-cal-hdr">${d}</div>`;
-    });
-    // blank cells before month start
-    for(let i=0;i<startDow;i++) html+='<div></div>';
-    for(let day=1;day<=lastDay.getDate();day++){
-      const d=new Date(_bearYear,_bearMonth,day); d.setHours(0,0,0,0);
-      const dStr=d.toDateString();
-      const isToday=d.getTime()===today.getTime();
-      const isSel=d.getTime()===sel.getTime();
-      const dayTasks=taskMap[dStr]||[];
-      const hasActive=dayTasks.some(t=>!t.done);
-      const hasOverdue=dayTasks.some(t=>{
-        if(t.done)return false;
-        const du=t.due?new Date(t.due+'T00:00:00'):null;
-        return du&&du<today;
-      });
-      const dateStr=`${_bearYear}-${String(_bearMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-      html+=`<div class="bear-cal-day${isToday?' today':''}${isSel?' selected':''}${hasActive?' has-tasks':''}${hasOverdue?' has-overdue':''}" onclick="bearSelectDay('${dateStr}')">${day}</div>`;
+  // Week strip — show 7 days centred on selected day
+  const strip = document.getElementById('bear-week-strip');
+  if (strip) {
+    const days = [];
+    for (let i = -3; i <= 3; i++) {
+      const d = new Date(selectedDate);
+      d.setDate(selectedDate.getDate() + i);
+      days.push({ d, off: offset + i });
     }
-    html+='</div>';
-    mg.innerHTML=html;
+    const tasks = state.bearTasks || [];
+    strip.innerHTML = days.map(({ d, off }) => {
+      const isSelectedDay = d.getTime() === selectedDate.getTime();
+      const isTodayDay = d.getTime() === today.getTime();
+      const dayStr = d.toDateString();
+      const hasTasks = tasks.some(t => t.assignedDay === dayStr && !t.done);
+      return `<div class="bear-week-day${isSelectedDay ? ' selected' : isTodayDay ? ' today' : ''}${hasTasks ? ' has-tasks' : ''}"
+        onclick="state.bearDayOffset=${off};save();renderBear()">
+        <div class="bwd-name">${d.toLocaleDateString('default',{weekday:'short'}).slice(0,2)}</div>
+        <div class="bwd-date">${d.getDate()}</div>
+        <div class="bwd-dot"></div>
+      </div>`;
+    }).join('');
   }
 
-  // ── Selected day tasks ──
-  const dayLabel=document.getElementById('bear-day-label');
-  const dayTasks=document.getElementById('bear-day-tasks');
-  if(dayLabel){
-    const isToday2=sel.getTime()===today.getTime();
-    dayLabel.textContent=(isToday2?'Today — ':'')+sel.toLocaleDateString('default',{weekday:'long',month:'long',day:'numeric'});
-  }
-  if(dayTasks){
-    const selStr=sel.toDateString();
-    const tasks=state.bearTasks||[];
-    // Tasks assigned to this day OR with due date on this day
-    const dayItems=tasks.filter(t=>{
-      if(t.assignedDay===selStr)return true;
-      if(t.due){const du=new Date(t.due+'T00:00:00');du.setHours(0,0,0,0);if(du.toDateString()===selStr)return true;}
-      return false;
-    });
-    // dedupe
-    const seen=new Set(); const unique=dayItems.filter(t=>{if(seen.has(t.id))return false;seen.add(t.id);return true;});
-    if(unique.length===0){
-      dayTasks.innerHTML='<div style="font-size:12px;color:#aaa;padding:4px 0">No tasks for this day.</div>';
-    } else {
-      const impDot={high:'🟣',medium:'🔴',low:'🟡'};
-      const impLabel={high:'High',medium:'Medium',low:'Low'};
-      dayTasks.innerHTML=unique.map(t=>{
-        const {label:dueLabel}=bearDueStatus(t.due,t.done);
-        return`<div class="bear-day-task-item ${t.importance}${t.done?' done':''}">
-          <span style="font-size:14px">${impDot[t.importance]}</span>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:600${t.done?';text-decoration:line-through;color:#aaa':''}">${t.text}</div>
-            ${dueLabel&&dueLabel!=='—'?`<div style="font-size:10px;color:#888;margin-top:1px">${dueLabel}</div>`:''}
-          </div>
-          <button class="btn btn-sm ${t.done?'':'btn-green'}" onclick="toggleBearDone(${t.id})"
-            style="${t.done?'background:#f0f0f0;color:#888;border-color:#e0e0e0;font-size:11px':'font-size:11px'}">${t.done?'Undo':'Done ✓'}</button>
-        </div>`;
-      }).join('');
-    }
-  }
-
-  renderBearTable();
+  renderBearTaskList();
 }
 
-function renderBearTable(){
-  const tbody=document.getElementById('bear-task-list');
-  const empty=document.getElementById('bear-task-empty');
-  if(!tbody)return;
+function renderBearTaskList() {
+  const el = document.getElementById('bear-task-list');
+  if (!el) return;
+  const offset = state.bearDayOffset || 0;
+  const selectedDate = bearDayDate(offset);
+  const selDateStr = selectedDate.toDateString();
 
-  const today=new Date(); today.setHours(0,0,0,0);
-  let tasks=[...(state.bearTasks||[])];
+  let tasks = (state.bearTasks || []).filter(t => t.assignedDay === selDateStr);
 
-  // Filter
-  if(_bearFilter==='active') tasks=tasks.filter(t=>!t.done);
-  else if(_bearFilter==='done') tasks=tasks.filter(t=>t.done);
-  else if(_bearFilter==='high') tasks=tasks.filter(t=>t.importance==='high');
-  else if(_bearFilter==='medium') tasks=tasks.filter(t=>t.importance==='medium');
-  else if(_bearFilter==='low') tasks=tasks.filter(t=>t.importance==='low');
+  // Apply filter
+  if (_bearFilter === 'active') tasks = tasks.filter(t => !t.done);
+  else if (_bearFilter === 'done') tasks = tasks.filter(t => t.done);
+  else if (_bearFilter === 'high') tasks = tasks.filter(t => t.importance === 'high');
+  else if (_bearFilter === 'medium') tasks = tasks.filter(t => t.importance === 'medium');
+  else if (_bearFilter === 'low') tasks = tasks.filter(t => t.importance === 'low');
 
-  // Sort: active first → by priority → by due date
-  const impOrder={high:0,medium:1,low:2};
-  tasks.sort((a,b)=>{
-    if(a.done!==b.done)return a.done?1:-1;
-    if(a.importance!==b.importance)return impOrder[a.importance]-impOrder[b.importance];
-    if(a.due&&b.due)return a.due.localeCompare(b.due);
-    if(a.due)return -1; if(b.due)return 1;
+  // Sort: undone first, then by importance (high→medium→low), then by due date
+  const impOrder = { high: 0, medium: 1, low: 2 };
+  tasks.sort((a, b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    if (a.importance !== b.importance) return impOrder[a.importance] - impOrder[b.importance];
+    if (a.due && b.due) return a.due.localeCompare(b.due);
     return 0;
   });
 
-  if(tasks.length===0){
-    tbody.innerHTML='';
-    if(empty)empty.style.display='block';
+  if (tasks.length === 0) {
+    el.innerHTML = `<div style="text-align:center;padding:24px;color:#888;font-size:13px">
+      No tasks for this day. Add one above! 🐻
+    </div>`;
     return;
   }
-  if(empty)empty.style.display='none';
 
-  const impLabel={high:'🟣 High',medium:'🔴 Medium',low:'🟡 Low'};
-  const impCls={high:'high',medium:'medium',low:'low'};
+  const impLabel = { high: 'High priority', medium: 'Medium priority', low: 'Low priority' };
+  el.innerHTML = tasks.map(t => {
+    const dueStr = t.due ? (() => {
+      const d = new Date(t.due + 'T00:00:00');
+      const today2 = new Date(); today2.setHours(0,0,0,0);
+      const diff = Math.ceil((d - today2) / 86400000);
+      const formatted = d.toLocaleDateString('default', { month: 'short', day: 'numeric' });
+      if (t.done) return `<span style="color:#aaa">Due: ${formatted}</span>`;
+      if (diff < 0) return `<span style="color:#E24B4A;font-weight:600">Overdue! ${formatted}</span>`;
+      if (diff === 0) return `<span style="color:#E24B4A;font-weight:600">Due today!</span>`;
+      if (diff === 1) return `<span style="color:#854F0B">Due tomorrow</span>`;
+      return `<span style="color:#888">Due: ${formatted}</span>`;
+    })() : '';
 
-  tbody.innerHTML=tasks.map(t=>{
-    const {label:dueLabel,cls:dueCls}=bearDueStatus(t.due,t.done);
-    const rowCls=t.done?'bear-tr done-row':'bear-tr';
-    return`<tr class="${rowCls}">
-      <!-- Task name -->
-      <td class="bear-td" style="min-width:160px;max-width:220px">
-        <div class="bear-task-name" style="font-size:13px;font-weight:600;word-break:break-word">${t.text}</div>
-        ${t.doneDate?`<div style="font-size:10px;color:#0F6E56;margin-top:2px">✅ Done ${t.doneDate}</div>`:''}
-      </td>
-      <!-- Comment -->
-      <td class="bear-td" style="min-width:140px">
-        <textarea class="bear-reply-input" rows="1"
-          placeholder="Add comment..."
-          onchange="saveBearComment(${t.id},this.value)"
-          onfocus="this.rows=3" onblur="this.rows=1"
-          style="min-width:120px">${t.comment||''}</textarea>
-      </td>
-      <!-- Priority -->
-      <td class="bear-td" style="text-align:center;min-width:90px">
-        <span class="bear-pri ${impCls[t.importance]}">${impLabel[t.importance]}</span>
-      </td>
-      <!-- Due date -->
-      <td class="bear-td" style="text-align:center;min-width:110px">
-        <div class="bear-due ${dueCls}">${dueLabel}</div>
-      </td>
-      <!-- Reply / Update -->
-      <td class="bear-td" style="min-width:160px">
-        <textarea class="bear-reply-input" rows="1"
-          placeholder="Reply or update..."
-          onchange="saveBearReply(${t.id},this.value)"
-          onfocus="this.rows=3" onblur="this.rows=1"
-          style="min-width:140px">${t.reply||''}</textarea>
-      </td>
-      <!-- Actions -->
-      <td class="bear-td" style="text-align:center;min-width:90px">
-        <div style="display:flex;flex-direction:column;gap:4px;align-items:center">
-          <button class="btn btn-sm ${t.done?'':'btn-green'}" onclick="toggleBearDone(${t.id})"
-            style="${t.done?'background:#f0f0f0;color:#888;border-color:#e0e0e0;font-size:11px':'font-size:11px'}">${t.done?'Undo':'Done ✓'}</button>
-          <button class="btn btn-sm btn-red" onclick="deleteBearTask(${t.id})" style="font-size:10px">✕ Delete</button>
+    return `<div class="bear-task ${t.importance}${t.done ? ' done' : ''}">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <div class="bear-imp-dot ${t.importance}" style="margin-top:4px"></div>
+        <div style="flex:1;min-width:0">
+          <div class="bear-task-text" style="font-size:14px;font-weight:600;margin-bottom:4px">${t.text}</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;margin-bottom:${t.comment ? '6px' : '0'}">
+            <span style="color:#888">${impLabel[t.importance]}</span>
+            ${dueStr}
+            ${t.doneDate ? `<span style="color:#0F6E56">✅ Done ${t.doneDate}</span>` : ''}
+          </div>
+          ${t.comment ? `<div style="font-size:12px;color:#555;background:rgba(0,0,0,.04);border-radius:7px;padding:5px 8px;margin-top:4px">💬 ${t.comment}</div>` : ''}
         </div>
-      </td>
-    </tr>`;
+        <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;align-items:flex-end">
+          <button class="btn btn-sm ${t.done ? '' : 'btn-green'}" onclick="toggleBearDone(${t.id})"
+            style="${t.done ? 'background:#f0f0f0;color:#888;border-color:#e0e0e0' : ''}">
+            ${t.done ? 'Undo' : 'Done ✓'}
+          </button>
+          <button class="btn btn-sm" onclick="editBearComment(${t.id})" style="font-size:10px;color:#888">💬 Note</button>
+          <button class="btn btn-sm btn-red" onclick="deleteBearTask(${t.id})" style="font-size:10px">✕</button>
+        </div>
+      </div>
+    </div>`;
   }).join('');
 }
+
 // ─── ENTRY GATE ───────────────────────────────────────────────
 let gateDigits=[];
 function renderGateDots(err=false){
