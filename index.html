@@ -376,8 +376,7 @@ document.dispatchEvent(new Event('fb-ready'));
 
 <div class="tabs" id="main-tabs">
   <button class="tab active" onclick="showTab('dashboard')">🏠 Home</button>
-  <button class="tab" onclick="showTab('weekly')">Calendar</button>
-  <button class="tab" onclick="showTab('pool')">✅ Tasks</button>
+  <button class="tab" onclick="showTab('weekly')">🗓️ Chores</button>
   <button class="tab" onclick="showTab('learning')">📚 Learning</button>
   <button class="tab" onclick="showTab('goals')">🎯 Goals</button>
   <button class="tab" onclick="showTab('reportcard')">📊 Report</button>
@@ -399,16 +398,16 @@ document.dispatchEvent(new Event('fb-ready'));
   </div>
 </div>
 
-<!-- WEEKLY -->
+<!-- CHORES (merged Calendar + Tasks) -->
 <div id="tab-weekly" class="section">
-  <!-- Calendar view controls -->
+
+  <!-- Section 1: Calendar -->
   <div class="card">
     <!-- View toggle -->
     <div style="display:flex;gap:6px;margin-bottom:14px">
       <button id="view-weekly-btn" class="btn" style="flex:1;font-weight:600;background:#EEEDFE;border-color:#AFA9EC;color:#3C3489" onclick="setCalView('weekly')">Weekly</button>
       <button id="view-daily-btn" class="btn" style="flex:1" onclick="setCalView('daily')">Daily</button>
     </div>
-
     <!-- Nav row -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <button class="btn btn-sm" onclick="calNavPrev()">← Prev</button>
@@ -421,7 +420,6 @@ document.dispatchEvent(new Event('fb-ready'));
     <div style="display:flex;justify-content:center;margin-bottom:10px">
       <button class="btn btn-sm" onclick="goToToday()" id="today-btn" style="font-size:11px;color:#534AB7;border-color:#AFA9EC;display:none">Today</button>
     </div>
-
     <!-- Weekly grid -->
     <div id="cal-weekly-view">
       <div class="week-grid-wrap"><div class="week-grid" id="week-grid"></div></div>
@@ -432,9 +430,12 @@ document.dispatchEvent(new Event('fb-ready'));
         <span class="tag tag-study-bonus">learning</span>
       </div>
     </div>
-
-    <!-- Daily view -->
+    <!-- Daily chores view -->
     <div id="cal-daily-view" style="display:none">
+      <!-- Daily banners -->
+      <div id="tasks-double-banner"></div>
+      <div id="tasks-cotw-banner"></div>
+      <!-- Daily tasks list (responsibilities + bonus with kid buttons) -->
       <div id="daily-grid"></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;font-size:10px">
         <span class="tag tag-resp">responsibility</span>
@@ -445,7 +446,13 @@ document.dispatchEvent(new Event('fb-ready'));
     </div>
   </div>
 
-  <!-- Add task to calendar -->
+  <!-- Section 2: Quick Award (parent) -->
+  <div class="card" style="background:#f8f7ff;border-color:#f0f0f0">
+    <div class="section-header"><div class="section-title" style="margin:0;font-size:13px">Quick award (parent)</div></div>
+    <div class="input-row"><select id="quick-kid" style="flex:1"></select><select id="quick-chore" style="flex:2"></select><button class="btn btn-green" onclick="awardBonusChore()">+ Award</button></div>
+  </div>
+
+  <!-- Section 3: Add Recurring Task -->
   <div class="card">
     <div class="section-title">➕ Add recurring task to a day</div>
     <div class="input-row">
@@ -457,62 +464,24 @@ document.dispatchEvent(new Event('fb-ready'));
     <div style="font-size:11px;color:#888">Tap any task in the calendar above to remove it from that day.</div>
   </div>
 
-  <!-- Responsibilities from Manage -->
+  <!-- Section 4: Responsibilities -->
   <div class="card">
     <div class="section-header"><div class="section-title" style="margin:0">Responsibilities</div><span class="badge badge-red" style="margin-left:auto;font-size:10px">required daily</span></div>
-    <div style="font-size:11px;color:#888;margin-bottom:10px">These are non-negotiable. Missing one costs points. Tap a day to assign.</div>
+    <div style="font-size:11px;color:#888;margin-bottom:10px">Non-negotiable. Missing one costs points. Tap a day to assign.</div>
     <div id="weekly-resp-list"></div>
   </div>
 
-  <!-- Bonus chores from Manage -->
+  <!-- Section 5: Bonus Chores -->
   <div class="card">
     <div class="section-header"><div class="section-title" style="margin:0">Bonus chores</div><span class="badge badge-green" style="margin-left:auto;font-size:10px">earns points</span></div>
-    <div style="font-size:11px;color:#888;margin-bottom:10px">Add bonus chores to specific days or claim from the Chore Pool tab.</div>
+    <div style="font-size:11px;color:#888;margin-bottom:10px">Add bonus chores to specific days. Completing earns points — parent approves.</div>
     <div id="weekly-bonus-list"></div>
   </div>
-</div>
-
-<!-- TASKS (renamed from Pool) -->
-<div id="tab-pool" class="section">
-
-  <!-- Date header -->
-  <div id="tasks-date-header" style="text-align:center;margin-bottom:12px">
-    <div style="font-size:18px;font-weight:700;color:#3C3489" id="tasks-today-label"></div>
-    <div style="font-size:12px;color:#888" id="tasks-today-date"></div>
-  </div>
-
-  <!-- Double points banner (injected by JS) -->
-  <div id="tasks-double-banner"></div>
-  <!-- COTW banner (injected by JS) -->
-  <div id="tasks-cotw-banner"></div>
-
-  <!-- Responsibilities section -->
-  <div class="card">
-    <div class="section-header">
-      <div class="section-title" style="margin:0">Responsibilities</div>
-      <span class="badge badge-red" style="margin-left:auto;font-size:10px">required</span>
-    </div>
-    <div style="font-size:11px;color:#888;margin-bottom:10px">Non-negotiable. Missing one deducts points.</div>
-    <div id="tasks-resp-list"></div>
-  </div>
-
-  <!-- Bonus Chores section -->
-  <div class="card">
-    <div class="section-header">
-      <div class="section-title" style="margin:0">Bonus chores</div>
-      <span class="badge badge-green" style="margin-left:auto;font-size:10px">earns points</span>
-    </div>
-    <div style="font-size:11px;color:#888;margin-bottom:10px">Complete a chore to earn points. Parent approves.</div>
-    <div id="tasks-bonus-list"></div>
-  </div>
-
-  <!-- Quick award (parent shortcut) -->
-  <div class="card" style="background:#f8f7ff;border-color:#f0f0f0">
-    <div class="section-header"><div class="section-title" style="margin:0;font-size:13px">Quick award (parent)</div></div>
-    <div class="input-row"><select id="quick-kid" style="flex:1"></select><select id="quick-chore" style="flex:2"></select><button class="btn btn-green" onclick="awardBonusChore()">+ Award</button></div>
-  </div>
 
 </div>
+
+<!-- tab-pool kept as hidden alias so renderPool() still works -->
+<div id="tab-pool" style="display:none"></div>
 
 <!-- LEARNING -->
 <div id="tab-learning" class="section">
@@ -1748,6 +1717,19 @@ function renderWeekly(){
   if(calView==='daily'){
     const dayDate=new Date();dayDate.setDate(dayDate.getDate()+(state.dayOffset||0));
     const dayName=DAYS[dayDate.getDay()===0?6:dayDate.getDay()-1];
+    const ids=pIds();
+    const cotw=state.cotw;
+    const double=isDoubleDay();
+
+    // Banners
+    const dblEl=document.getElementById('tasks-double-banner');
+    if(dblEl)dblEl.innerHTML=double?`<div style="background:linear-gradient(135deg,#FAEEDA,#EAF3DE);border:2px solid #EF9F27;border-radius:14px;padding:10px 14px;margin-bottom:10px;font-size:13px;font-weight:600;color:#633806;text-align:center">🎉 Double points day! All bonus chores earn 2× today!</div>`:'';
+    const cotwEl=document.getElementById('tasks-cotw-banner');
+    if(cotwEl){
+      if(cotw.choreId){const cc=getChore(cotw.choreId);cotwEl.innerHTML=cc?`<div style="background:linear-gradient(135deg,#EEEDFE,#E6F1FB);border:2px solid #AFA9EC;border-radius:14px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:10px;font-weight:700;color:#3C3489;text-transform:uppercase;letter-spacing:.04em">⭐ Chore of the week</div><div style="font-size:14px;font-weight:600;margin-top:2px">${cc.name}</div></div><span class="badge badge-purple">+${cotw.bonusPts} bonus pts</span></div>`:'';}
+      else cotwEl.innerHTML='';
+    }
+
     const scheduledIds=state.calendar[dayName]||[];
     const tasks=scheduledIds.map(id=>getChore(id)).filter(Boolean);
     const dg=document.getElementById('daily-grid');
@@ -1757,14 +1739,21 @@ function renderWeekly(){
         :tasks.map(c=>{
           const tc=TYPE_COLORS[c.type]||TYPE_COLORS.responsibility;
           const isBonus=c.type==='bonus'||c.type==='study-bonus';
-          const pts=isBonus?c.pts:null;
+          const isCOTW=cotw.choreId===c.id;
+          const pts=isBonus?(c.pts*(double?2:1)+(isCOTW?cotw.bonusPts:0)):null;
           const catLabel=c.type==='responsibility'?'Responsibility':c.type==='bonus'?'Bonus chore':c.type==='study-required'?'Homework':'Learning bonus';
-          return`<div style="background:${tc.bg};border:1.5px solid ${tc.border};border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
-            <div style="flex:1">
-              <span style="font-size:20px;margin-right:8px">${choreIcon(c.name,c.icon)}</span><div style="font-size:14px;font-weight:600;color:${tc.text}">${c.name}</div>
-              <div style="font-size:11px;color:${tc.text};opacity:.75;margin-top:2px">${catLabel}${pts?' · +'+pts+' pts':' · miss = -'+(state.rates.penalty||5)+' pts'}</div>
+          // Kid action buttons
+          const kidBtns=ids.map(k=>`<button class="btn btn-sm btn-${isBonus?'green':'red'}" onclick="markDone('${k}',${c.id},'${c.type}')" style="display:flex;align-items:center;gap:3px;font-size:11px">${kidSVG(state.participants[k].theme,16)}<span>${state.participants[k].name}${isBonus?' did it':' missed'}</span></button>`).join('');
+          return`<div style="background:${tc.bg};border:1.5px solid ${tc.border};border-radius:12px;padding:12px 14px;margin-bottom:8px">
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <span style="font-size:20px;flex-shrink:0;margin-top:1px">${choreIcon(c.name,c.icon)}</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:14px;font-weight:600;color:${tc.text}">${c.name}${isCOTW?' ⭐':''}</div>
+                <div style="font-size:11px;color:${tc.text};opacity:.75;margin-top:2px">${catLabel}${pts?' · +'+pts+' pts'+(double?' (2×)':''):' · miss = -'+(state.rates.penalty||5)+' pts'}</div>
+                <button class="btn btn-sm" onclick="removeFromCalendar('${dayName}',${c.id})" style="font-size:10px;color:#888;margin-top:6px;padding:2px 8px">Remove</button>
+              </div>
+              <div class="today-btns" style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">${kidBtns}</div>
             </div>
-            <button class="btn btn-sm" onclick="removeFromCalendar('${dayName}',${c.id})" style="font-size:11px;color:#888">Remove</button>
           </div>`;
         }).join('');
     }
@@ -1780,88 +1769,14 @@ function toggleDayChore(day,choreId){
 }
 
 function renderPool(){
+  // Quick award dropdown — still used in the merged Chores tab
   const ids=pIds();
-  const dayIdx=new Date().getDay();
-  const todayName=DAYS[dayIdx===0?6:dayIdx-1];
-  const todayDate=new Date().toLocaleDateString('default',{weekday:'long',month:'long',day:'numeric'});
-  const todayShort=new Date().toLocaleDateString('default',{month:'short',day:'numeric'});
-
-  // Date header
-  const lbl=document.getElementById('tasks-today-label');
-  const dt=document.getElementById('tasks-today-date');
-  if(lbl)lbl.textContent=todayName;
-  if(dt)dt.textContent=todayDate;
-
-  // Double points banner
-  const double=isDoubleDay();
-  const dbl=document.getElementById('tasks-double-banner');
-  if(dbl)dbl.innerHTML=double?`<div style="background:linear-gradient(135deg,#FAEEDA,#EAF3DE);border:2px solid #EF9F27;border-radius:14px;padding:10px 14px;margin-bottom:10px;font-size:13px;font-weight:600;color:#633806;text-align:center">🎉 Double points day! All bonus chores earn 2× today!</div>`:'';
-
-  // COTW banner
-  const cotw=state.cotw;
-  const cotwEl=document.getElementById('tasks-cotw-banner');
-  if(cotwEl){
-    if(cotw.choreId){const c=getChore(cotw.choreId);cotwEl.innerHTML=c?`<div style="background:linear-gradient(135deg,#EEEDFE,#E6F1FB);border:2px solid #AFA9EC;border-radius:14px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:10px;font-weight:700;color:#3C3489;text-transform:uppercase;letter-spacing:.04em">⭐ Chore of the week</div><div style="font-size:14px;font-weight:600;margin-top:2px">${c.name}</div></div><span class="badge badge-purple">+${cotw.bonusPts} bonus pts</span></div>`:'';}
-    else cotwEl.innerHTML='';
-  }
-
-  // Get today's scheduled chore IDs
-  const scheduledIds=new Set(state.calendar[todayName]||[]);
-
-  // Responsibilities: all responsibility-type chores that are scheduled today
-  const respDiv=document.getElementById('tasks-resp-list');
-  if(respDiv){
-    const resps=state.chores.filter(c=>c.type==='responsibility'&&scheduledIds.has(c.id));
-    respDiv.innerHTML=resps.length===0
-      ?'<div style="font-size:13px;color:#888;text-align:center;padding:12px">No responsibilities scheduled for today 🎉</div>'
-      :resps.map(c=>{
-        const tc=TYPE_COLORS.responsibility;
-        return`<div style="display:flex;align-items:center;gap:10px;background:${tc.bg};border-radius:12px;padding:10px 12px;margin-bottom:8px;border:1.5px solid ${tc.border}">
-          <span style="font-size:22px;flex-shrink:0">${choreIcon(c.name,c.icon)}</span>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:${tc.text}">${c.name}</div>
-            <div style="font-size:10px;color:${tc.text};opacity:.8;margin-top:2px">Responsibility · miss = -${state.rates.penalty||5} pts</div>
-          </div>
-          <div class="today-btns" style="display:flex;gap:5px">
-            ${ids.map(k=>`<button class="btn btn-sm btn-red" onclick="markDone('${k}',${c.id},'responsibility')" style="display:flex;align-items:center;gap:3px">
-              ${kidSVG(state.participants[k].theme,16)}<span>${state.participants[k].name} missed</span>
-            </button>`).join('')}
-          </div>
-        </div>`;
-      }).join('');
-  }
-
-  // Bonus chores: all bonus-type chores scheduled today
-  const bonusDiv=document.getElementById('tasks-bonus-list');
-  if(bonusDiv){
-    const bonuses=state.chores.filter(c=>c.type==='bonus'&&scheduledIds.has(c.id));
-    const diffLabel={easy:'Easy',medium:'Medium',hard:'Hard'};
-    const tc=TYPE_COLORS.bonus;
-    bonusDiv.innerHTML=bonuses.length===0
-      ?'<div style="font-size:13px;color:#888;text-align:center;padding:12px">No bonus chores scheduled for today.<br><span style="font-size:11px">Add them in the Weekly tab or use Quick Award below.</span></div>'
-      :bonuses.map(c=>{
-        const isCOTW=cotw.choreId===c.id;
-        const pts=c.pts*(double?2:1)+(isCOTW?cotw.bonusPts:0);
-        return`<div style="display:flex;align-items:center;gap:10px;background:${tc.bg};border-radius:12px;padding:10px 12px;margin-bottom:8px;border:1.5px solid ${tc.border}${isCOTW?';border-color:#AFA9EC':''}">
-          <span style="font-size:22px;flex-shrink:0">${choreIcon(c.name,c.icon)}</span>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:${tc.text}">${c.name}${isCOTW?' ⭐':''}</div>
-            <div style="font-size:10px;color:${tc.text};opacity:.8;margin-top:2px">Bonus · ${diffLabel[c.diff||'easy']} · +${pts} pts${double?' (2×)':''}${isCOTW?' +'+cotw.bonusPts+' COTW':''}</div>
-          </div>
-          <div class="today-btns" style="display:flex;gap:5px">
-            ${ids.map(k=>`<button class="btn btn-sm btn-green" onclick="markDone('${k}',${c.id},'bonus')" style="display:flex;align-items:center;gap:3px">
-              ${kidSVG(state.participants[k].theme,16)}<span>${state.participants[k].name}</span>
-            </button>`).join('')}
-          </div>
-        </div>`;
-      }).join('');
-  }
-
-  // Quick award dropdown
-  const qk=document.getElementById('quick-kid');const qc=document.getElementById('quick-chore');
+  const qk=document.getElementById('quick-kid');
+  const qc=document.getElementById('quick-chore');
   if(qk)qk.innerHTML=ids.map(k=>`<option value="${k}">${state.participants[k].name}</option>`).join('');
-  if(qc){const bonus=state.chores.filter(c=>c.type==='bonus');qc.innerHTML=bonus.map(c=>`<option value="${c.id}">${c.name} (${c.pts}pts)</option>`).join('');}
+  if(qc){const bonus=state.chores.filter(c=>c.type==='bonus');qc.innerHTML=bonus.map(c=>`<option value="${c.id}">${choreIcon(c.name,c.icon)} ${c.name} (${c.pts}pts)</option>`).join('');}
 }
+
 
 function renderLearning(){
   const ids=pIds();
