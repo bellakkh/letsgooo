@@ -181,6 +181,30 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 .bwd-name{font-size:10px;font-weight:600;color:#888;margin-bottom:2px}
 .bwd-date{font-size:13px;font-weight:700;color:#333}
 .bwd-dot{display:none;width:5px;height:5px;border-radius:50%;background:#534AB7;margin:3px auto 0}
+.bth{padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #f0f0f0;white-space:nowrap}
+.btd{padding:7px 10px;vertical-align:middle;font-size:12px;border-bottom:1px solid #f8f8f8}
+.bear-tr:last-child .btd{border-bottom:none}
+/* Berry dashboard */
+.berry-dashboard{background:linear-gradient(135deg,#FFF8F0,#FFF3E6);border:2px solid #F7C89B;border-radius:16px;padding:12px 14px;margin-bottom:12px}
+.berry-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.berry-types{display:flex;gap:8px;flex:1;min-width:0}
+.berry-type{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:52px;background:#fff;border-radius:10px;padding:7px 4px;border:1.5px solid #f0f0f0}
+.berry-type .bi{font-size:20px;line-height:1}
+.berry-type .bv{font-size:16px;font-weight:700;line-height:1.2}
+.berry-type .bl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-top:1px}
+.berry-type.low  .bv{color:#854F0B}.berry-type.low  .bl{color:#A0622A}
+.berry-type.med  .bv{color:#A32D2D}.berry-type.med  .bl{color:#C0393A}
+.berry-type.high .bv{color:#3C3489}.berry-type.high .bl{color:#534AB7}
+.berry-totals{display:flex;flex-direction:column;gap:6px;min-width:140px;flex:1}
+.berry-total-row{display:flex;align-items:center;gap:8px}
+.berry-total-label{font-size:11px;color:#A0622A;font-weight:600;width:80px;flex-shrink:0}
+.berry-total-val{font-size:13px;font-weight:700;color:#854F0B}
+.berry-bar-wrap{background:#FFE4C4;border-radius:99px;height:9px;flex:1;overflow:hidden}
+.berry-bar-fill{height:9px;border-radius:99px;transition:width .5s ease}
+.honey-stat{display:flex;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:8px 12px;border:1.5px solid #F7C89B;flex-shrink:0}
+.honey-stat .hi{font-size:28px;line-height:1}
+.honey-stat .hv{font-size:20px;font-weight:700;color:#854F0B;line-height:1}
+.honey-stat .hl{font-size:10px;color:#A0622A;font-weight:600}
 /* ── MOBILE RESPONSIVE ─────────────────────────────────────── */
 @media(max-width:640px){
   #app{padding:8px}
@@ -731,6 +755,53 @@ document.dispatchEvent(new Event('fb-ready'));
       <button class="btn btn-amber btn-sm" onclick="lockTab('bear')">🔒 Lock</button>
     </div>
 
+    <!-- Berry & Honey Dashboard -->
+    <!-- Berry & Honey Dashboard -->
+    <div class="berry-dashboard" id="bear-dashboard">
+      <div class="berry-row">
+        <!-- Berry types by priority -->
+        <div class="berry-types">
+          <div class="berry-type low">
+            <div class="bi">🫐</div>
+            <div class="bv" id="bd-low">0</div>
+            <div class="bl">Low ×0.5</div>
+          </div>
+          <div class="berry-type med">
+            <div class="bi">🍓</div>
+            <div class="bv" id="bd-med">0</div>
+            <div class="bl">Med ×1</div>
+          </div>
+          <div class="berry-type high">
+            <div class="bi">🍇</div>
+            <div class="bv" id="bd-high">0</div>
+            <div class="bl">High ×1.5</div>
+          </div>
+        </div>
+        <!-- Total + progress -->
+        <div class="berry-totals">
+          <div class="berry-total-row">
+            <div class="berry-total-label">Total pts</div>
+            <div class="berry-total-val" id="bd-total">0</div>
+          </div>
+          <div class="berry-total-row">
+            <div class="berry-total-label">Next 🍯</div>
+            <div class="berry-bar-wrap" style="flex:1">
+              <div class="berry-bar-fill" id="bd-bar" style="width:0%;background:linear-gradient(90deg,#EF9F27,#E07B00)"></div>
+            </div>
+            <div style="font-size:10px;color:#A0622A;flex-shrink:0;min-width:28px;text-align:right" id="bd-pct">0%</div>
+          </div>
+        </div>
+        <!-- Honey pots -->
+        <div class="honey-stat">
+          <div class="hi">🍯</div>
+          <div>
+            <div class="hv" id="bd-honey">0</div>
+            <div class="hl">Honey pots</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Calendar: month navigation + week strip + day task list -->
     <div class="card" style="margin-bottom:12px">
       <!-- Month nav -->
@@ -850,17 +921,16 @@ document.dispatchEvent(new Event('fb-ready'));
       </div>
       <!-- Scrollable table -->
       <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
-        <table id="bear-task-table" style="width:100%;border-collapse:collapse;min-width:640px">
+        <table id="bear-task-table" style="width:100%;border-collapse:collapse;min-width:580px">
           <thead>
             <tr style="background:#f8f7ff">
-              <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #f0f0f0;white-space:nowrap">Task name</th>
-              <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #f0f0f0;white-space:nowrap">Comment</th>
-              <th style="padding:10px 12px;text-align:center;font-size:11px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #f0f0f0;white-space:nowrap">Priority</th>
-              <th style="padding:10px 12px;text-align:center;font-size:11px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #f0f0f0;white-space:nowrap">Due date</th>
-              <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #f0f0f0;white-space:nowrap">Reply / Update</th>
-              <th style="padding:10px 12px;text-align:center;font-size:11px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #f0f0f0;white-space:nowrap">Export</th>
-              <th style="padding:10px 12px;text-align:center;font-size:11px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #f0f0f0;white-space:nowrap">Export</th>
-              <th style="padding:10px 12px;text-align:center;font-size:11px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #f0f0f0;white-space:nowrap">Actions</th>
+              <th class="bth">Task</th>
+              <th class="bth">Comment</th>
+              <th class="bth" style="text-align:center">Priority</th>
+              <th class="bth" style="text-align:center">Due</th>
+              <th class="bth">Reply</th>
+              <th class="bth" style="text-align:center">Export</th>
+              <th class="bth" style="text-align:center">Actions</th>
             </tr>
           </thead>
           <tbody id="bear-task-list"></tbody>
@@ -2022,7 +2092,7 @@ function toggleBearDone(id){
   if(!task)return;
   task.done=!task.done;
   task.doneDate=task.done?new Date().toLocaleDateString():null;
-  save(); renderBear();
+  save(); renderBear(); renderBerryDashboard();
 }
 
 function deleteBearTask(id){
@@ -2178,6 +2248,7 @@ function renderBear(){
   }
 
   renderBearTable();
+  renderBerryDashboard();
 }
 
 function renderBearTable(){
@@ -2220,58 +2291,80 @@ function renderBearTable(){
     const rowCls=t.done?'bear-tr done-row':'bear-tr';
     return`<tr class="${rowCls}">
       <!-- Task name -->
-      <td class="bear-td" style="min-width:160px;max-width:220px">
-        <div class="bear-task-name" style="font-size:13px;font-weight:600;word-break:break-word">${t.text}</div>
-        ${t.doneDate?`<div style="font-size:10px;color:#0F6E56;margin-top:2px">✅ Done ${t.doneDate}</div>`:''}
+      <td class="btd" style="min-width:130px;max-width:200px">
+        <div class="bear-task-name" style="font-size:12px;font-weight:600;word-break:break-word;line-height:1.3">${t.text}</div>
+        ${t.doneDate?`<div style="font-size:10px;color:#0F6E56;margin-top:2px">✅ ${t.doneDate}</div>`:''}
       </td>
       <!-- Comment -->
-      <td class="bear-td" style="min-width:140px">
-        <textarea class="bear-reply-input" rows="1"
-          placeholder="Add comment..."
+      <td class="btd" style="min-width:110px">
+        <textarea class="bear-reply-input" rows="1" placeholder="Comment…"
           onchange="saveBearComment(${t.id},this.value)"
-          onfocus="this.rows=3" onblur="this.rows=1"
-          style="min-width:120px">${t.comment||''}</textarea>
+          onfocus="this.rows=3" onblur="this.rows=1">${t.comment||''}</textarea>
       </td>
       <!-- Priority -->
-      <td class="bear-td" style="text-align:center;min-width:90px">
+      <td class="btd" style="text-align:center;min-width:80px">
         <span class="bear-pri ${impCls[t.importance]}">${impLabel[t.importance]}</span>
       </td>
       <!-- Due date -->
-      <td class="bear-td" style="text-align:center;min-width:110px">
-        <div class="bear-due ${dueCls}">${dueLabel}</div>
+      <td class="btd" style="text-align:center;min-width:90px">
+        <div class="bear-due ${dueCls}" style="font-size:11px">${dueLabel}</div>
       </td>
-      <!-- Reply / Update -->
-      <td class="bear-td" style="min-width:160px">
-        <textarea class="bear-reply-input" rows="1"
-          placeholder="Reply or update..."
+      <!-- Reply -->
+      <td class="btd" style="min-width:110px">
+        <textarea class="bear-reply-input" rows="1" placeholder="Reply…"
           onchange="saveBearReply(${t.id},this.value)"
-          onfocus="this.rows=3" onblur="this.rows=1"
-          style="min-width:140px">${t.reply||''}</textarea>
+          onfocus="this.rows=3" onblur="this.rows=1">${t.reply||''}</textarea>
       </td>
       <!-- Export -->
-      <td class="bear-td" style="text-align:center;min-width:130px">
-        ${t.due?`<div style="display:flex;flex-direction:column;gap:5px;align-items:stretch">
-          <button class="btn btn-sm btn-blue" onclick="exportBearTaskICS(${t.id})"
-            style="font-size:11px;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:4px">
-            <span>📥</span>.ics file
-          </button>
-          <button class="btn btn-sm" onclick="openGCalLink(${t.id})"
-            style="font-size:11px;white-space:nowrap;border-color:#DB4437;color:#DB4437;background:#FEF0F0;display:flex;align-items:center;justify-content:center;gap:4px">
-            <span>📅</span>Google Cal
-          </button>
-        </div>`:`<div style="font-size:10px;color:#bbb;text-align:center;line-height:1.4">Set a<br>due date<br>to export</div>`}
+      <td class="btd" style="text-align:center;min-width:100px">
+        ${t.due?`<div style="display:flex;flex-direction:column;gap:3px">
+          <button class="btn btn-sm btn-blue" onclick="exportBearTaskICS(${t.id})" style="font-size:10px;padding:3px 7px">📥 .ics</button>
+          <button class="btn btn-sm" onclick="openGCalLink(${t.id})" style="font-size:10px;padding:3px 7px;border-color:#DB4437;color:#DB4437;background:#FEF0F0">📅 GCal</button>
+        </div>`:`<span style="font-size:10px;color:#bbb">No due date</span>`}
       </td>
       <!-- Actions -->
-      <td class="bear-td" style="text-align:center;min-width:90px">
-        <div style="display:flex;flex-direction:column;gap:4px;align-items:center">
+      <td class="btd" style="text-align:center;min-width:80px;vertical-align:middle">
+        <div style="display:flex;flex-direction:column;gap:3px;align-items:center">
           <button class="btn btn-sm ${t.done?'':'btn-green'}" onclick="toggleBearDone(${t.id})"
-            style="${t.done?'background:#f0f0f0;color:#888;border-color:#e0e0e0;font-size:11px':'font-size:11px'}">${t.done?'Undo':'Done ✓'}</button>
-          <button class="btn btn-sm btn-red" onclick="deleteBearTask(${t.id})" style="font-size:10px">✕ Delete</button>
+            style="font-size:10px;padding:3px 8px;${t.done?'background:#f0f0f0;color:#888;border-color:#e0e0e0':''}">${t.done?'Undo':'Done ✓'}</button>
+          <button class="btn btn-sm btn-red" onclick="deleteBearTask(${t.id})" style="font-size:10px;padding:3px 8px">✕ Del</button>
         </div>
       </td>
     </tr>`;
   }).join('');
 }
+// ─── BERRY DASHBOARD ─────────────────────────────────────────
+// Priority berry values: low=0.5, medium=1, high=1.5
+const BERRY_PTS = {low:0.5, medium:1, high:1.5};
+
+function renderBerryDashboard(){
+  const tasks = state.bearTasks || [];
+  const done  = tasks.filter(t => t.done);
+
+  // Count completed tasks per priority
+  const lowCount  = done.filter(t => t.importance==='low').length;
+  const medCount  = done.filter(t => t.importance==='medium').length;
+  const highCount = done.filter(t => t.importance==='high').length;
+
+  // Total berry points
+  const totalPts = lowCount*0.5 + medCount*1 + highCount*1.5;
+  const honeyPots = Math.floor(totalPts / 10);
+  const remainder = totalPts % 10;          // pts toward next pot
+  const pct = (remainder / 10) * 100;
+
+  // Update counts per type
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  set('bd-low',  lowCount);
+  set('bd-med',  medCount);
+  set('bd-high', highCount);
+  set('bd-total', totalPts % 1 === 0 ? totalPts : totalPts.toFixed(1));
+  set('bd-honey', honeyPots);
+  set('bd-pct',   Math.round(pct)+'%');
+
+  const bar = document.getElementById('bd-bar');
+  if(bar) bar.style.width = pct + '%';
+}
+
 // ─── CALENDAR EXPORT ─────────────────────────────────────────
 
 function formatICSDate(dateStr) {
