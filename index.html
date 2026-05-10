@@ -1743,17 +1743,17 @@ function renderWeekly(){
           const pts=isBonus?(c.pts*(double?2:1)+(isCOTW?cotw.bonusPts:0)):null;
           const catLabel=c.type==='responsibility'?'Responsibility':c.type==='bonus'?'Bonus chore':c.type==='study-required'?'Homework':'Learning bonus';
           // Kid action buttons
-          const kidBtns=ids.map(k=>`<button class="btn btn-sm btn-${isBonus?'green':'red'}" onclick="markDone('${k}',${c.id},'${c.type}')" style="display:flex;align-items:center;gap:3px;font-size:11px">${kidSVG(state.participants[k].theme,16)}<span>${state.participants[k].name}${isBonus?' did it':' missed'}</span></button>`).join('');
-          return`<div style="background:${tc.bg};border:1.5px solid ${tc.border};border-radius:12px;padding:12px 14px;margin-bottom:8px">
-            <div style="display:flex;align-items:flex-start;gap:10px">
-              <span style="font-size:20px;flex-shrink:0;margin-top:1px">${choreIcon(c.name,c.icon)}</span>
-              <div style="flex:1;min-width:0">
-                <div style="font-size:14px;font-weight:600;color:${tc.text}">${c.name}${isCOTW?' ⭐':''}</div>
-                <div style="font-size:11px;color:${tc.text};opacity:.75;margin-top:2px">${catLabel}${pts?' · +'+pts+' pts'+(double?' (2×)':''):' · miss = -'+(state.rates.penalty||5)+' pts'}</div>
-                <button class="btn btn-sm" onclick="removeFromCalendar('${dayName}',${c.id})" style="font-size:10px;color:#888;margin-top:6px;padding:2px 8px">Remove</button>
+          const kidBtns=ids.map(k=>`<button class="btn btn-sm btn-${isBonus?'green':'red'}" onclick="markDone('${k}',${c.id},'${c.type}')" style="display:flex;align-items:center;gap:2px;font-size:10px;padding:3px 7px">${kidSVG(state.participants[k].theme,14)}<span>${state.participants[k].name}${isBonus?' ✓':' ✗'}</span></button>`).join('');
+          return`<div style="background:${tc.bg};border:1.5px solid ${tc.border};border-radius:9px;padding:6px 10px;margin-bottom:5px;display:flex;align-items:center;gap:8px">
+            <span style="font-size:16px;flex-shrink:0">${choreIcon(c.name,c.icon)}</span>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:baseline;gap:5px;flex-wrap:wrap">
+                <span style="font-size:13px;font-weight:600;color:${tc.text}">${c.name}${isCOTW?' ⭐':''}</span>
+                <span style="font-size:10px;color:${tc.text};opacity:.7">${pts?'+'+pts+' pts'+(double?' (2×)':''):'-'+(state.rates.penalty||5)+' pts'}</span>
               </div>
-              <div class="today-btns" style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">${kidBtns}</div>
+              <button onclick="removeFromCalendar('${dayName}',${c.id})" style="background:none;border:none;font-size:10px;color:#bbb;cursor:pointer;padding:0;margin-top:1px">✕ remove</button>
             </div>
+            <div style="display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">${kidBtns}</div>
           </div>`;
         }).join('');
     }
