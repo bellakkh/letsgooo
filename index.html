@@ -183,28 +183,31 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 .bwd-dot{display:none;width:5px;height:5px;border-radius:50%;background:#534AB7;margin:3px auto 0}
 .bth{padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #f0f0f0;white-space:nowrap}
 .btd{padding:7px 10px;vertical-align:middle;font-size:12px;border-bottom:1px solid #f8f8f8}
+.bear-edit-select{font-family:inherit;cursor:pointer;outline:none;transition:border-color .2s}
+.bear-edit-select:focus{border-color:#AFA9EC !important}
 .bear-tr:last-child .btd{border-bottom:none}
 /* Berry dashboard */
 .berry-dashboard{background:linear-gradient(135deg,#FFF8F0,#FFF3E6);border:2px solid #F7C89B;border-radius:16px;padding:12px 14px;margin-bottom:12px}
-.berry-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.berry-types{display:flex;gap:8px;flex:1;min-width:0}
-.berry-type{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:52px;background:#fff;border-radius:10px;padding:7px 4px;border:1.5px solid #f0f0f0}
-.berry-type .bi{font-size:20px;line-height:1}
-.berry-type .bv{font-size:16px;font-weight:700;line-height:1.2}
-.berry-type .bl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-top:1px}
+/* Row 1: three berry types + honey pot side by side */
+.berry-top{display:flex;gap:6px;align-items:stretch;margin-bottom:10px}
+.berry-type{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;background:#fff;border-radius:10px;padding:7px 4px;border:1.5px solid #f0f0f0;min-width:0}
+.berry-type .bi{font-size:18px;line-height:1}
+.berry-type .bv{font-size:15px;font-weight:700;line-height:1.2}
+.berry-type .bl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.02em;margin-top:1px;text-align:center;white-space:nowrap}
 .berry-type.low  .bv{color:#854F0B}.berry-type.low  .bl{color:#A0622A}
 .berry-type.med  .bv{color:#A32D2D}.berry-type.med  .bl{color:#C0393A}
 .berry-type.high .bv{color:#3C3489}.berry-type.high .bl{color:#534AB7}
-.berry-totals{display:flex;flex-direction:column;gap:6px;min-width:140px;flex:1}
-.berry-total-row{display:flex;align-items:center;gap:8px}
-.berry-total-label{font-size:11px;color:#A0622A;font-weight:600;width:80px;flex-shrink:0}
-.berry-total-val{font-size:13px;font-weight:700;color:#854F0B}
+.honey-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#fff;border-radius:10px;padding:7px 10px;border:1.5px solid #F7C89B;flex-shrink:0}
+.honey-stat .hi{font-size:20px;line-height:1}
+.honey-stat .hv{font-size:16px;font-weight:700;color:#854F0B;line-height:1.2}
+.honey-stat .hl{font-size:9px;color:#A0622A;font-weight:600;white-space:nowrap}
+/* Row 2: total + progress bar */
+.berry-bottom{display:flex;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:7px 10px;border:1.5px solid #f0f0f0}
+.berry-total-label{font-size:11px;color:#A0622A;font-weight:600;flex-shrink:0;white-space:nowrap}
+.berry-total-val{font-size:13px;font-weight:700;color:#854F0B;flex-shrink:0;min-width:28px}
 .berry-bar-wrap{background:#FFE4C4;border-radius:99px;height:9px;flex:1;overflow:hidden}
-.berry-bar-fill{height:9px;border-radius:99px;transition:width .5s ease}
-.honey-stat{display:flex;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:8px 12px;border:1.5px solid #F7C89B;flex-shrink:0}
-.honey-stat .hi{font-size:28px;line-height:1}
-.honey-stat .hv{font-size:20px;font-weight:700;color:#854F0B;line-height:1}
-.honey-stat .hl{font-size:10px;color:#A0622A;font-weight:600}
+.berry-bar-fill{height:9px;border-radius:99px;background:linear-gradient(90deg,#EF9F27,#E07B00);transition:width .5s ease}
+.berry-pct{font-size:10px;color:#A0622A;flex-shrink:0;min-width:28px;text-align:right}
 /* ── MOBILE RESPONSIVE ─────────────────────────────────────── */
 @media(max-width:640px){
   #app{padding:8px}
@@ -758,47 +761,38 @@ document.dispatchEvent(new Event('fb-ready'));
     <!-- Berry & Honey Dashboard -->
     <!-- Berry & Honey Dashboard -->
     <div class="berry-dashboard" id="bear-dashboard">
-      <div class="berry-row">
-        <!-- Berry types by priority -->
-        <div class="berry-types">
-          <div class="berry-type low">
-            <div class="bi">🫐</div>
-            <div class="bv" id="bd-low">0</div>
-            <div class="bl">Low ×0.5</div>
-          </div>
-          <div class="berry-type med">
-            <div class="bi">🍓</div>
-            <div class="bv" id="bd-med">0</div>
-            <div class="bl">Med ×1</div>
-          </div>
-          <div class="berry-type high">
-            <div class="bi">🍇</div>
-            <div class="bv" id="bd-high">0</div>
-            <div class="bl">High ×1.5</div>
-          </div>
+      <!-- Row 1: berry types + honey pot -->
+      <div class="berry-top">
+        <div class="berry-type low">
+          <div class="bi">🫐</div>
+          <div class="bv" id="bd-low">0</div>
+          <div class="bl">Low ×½</div>
         </div>
-        <!-- Total + progress -->
-        <div class="berry-totals">
-          <div class="berry-total-row">
-            <div class="berry-total-label">Total pts</div>
-            <div class="berry-total-val" id="bd-total">0</div>
-          </div>
-          <div class="berry-total-row">
-            <div class="berry-total-label">Next 🍯</div>
-            <div class="berry-bar-wrap" style="flex:1">
-              <div class="berry-bar-fill" id="bd-bar" style="width:0%;background:linear-gradient(90deg,#EF9F27,#E07B00)"></div>
-            </div>
-            <div style="font-size:10px;color:#A0622A;flex-shrink:0;min-width:28px;text-align:right" id="bd-pct">0%</div>
-          </div>
+        <div class="berry-type med">
+          <div class="bi">🍓</div>
+          <div class="bv" id="bd-med">0</div>
+          <div class="bl">Med ×1</div>
         </div>
-        <!-- Honey pots -->
+        <div class="berry-type high">
+          <div class="bi">🍇</div>
+          <div class="bv" id="bd-high">0</div>
+          <div class="bl">High ×1½</div>
+        </div>
         <div class="honey-stat">
           <div class="hi">🍯</div>
-          <div>
-            <div class="hv" id="bd-honey">0</div>
-            <div class="hl">Honey pots</div>
-          </div>
+          <div class="hv" id="bd-honey">0</div>
+          <div class="hl">Honey pots</div>
         </div>
+      </div>
+      <!-- Row 2: total pts + progress to next pot -->
+      <div class="berry-bottom">
+        <div class="berry-total-label">Total pts</div>
+        <div class="berry-total-val" id="bd-total">0</div>
+        <div class="berry-bar-wrap">
+          <div class="berry-bar-fill" id="bd-bar" style="width:0%"></div>
+        </div>
+        <div class="berry-pct" id="bd-pct">0%</div>
+        <div style="font-size:10px;color:#A0622A;flex-shrink:0;white-space:nowrap">→ next 🍯</div>
       </div>
     </div>
 
@@ -2115,6 +2109,25 @@ function saveBearComment(id,val){
   save();
 }
 
+function updateBearPriority(id,val){
+  const task=(state.bearTasks||[]).find(t=>t.id===id);
+  if(!task)return;
+  task.importance=val;
+  save(); renderBearTable(); renderBerryDashboard();
+}
+
+function updateBearDue(id,val){
+  const task=(state.bearTasks||[]).find(t=>t.id===id);
+  if(!task)return;
+  task.due=val;
+  // Update assignedDay too if due date is set
+  if(val){
+    const d=new Date(val+'T00:00:00'); d.setHours(0,0,0,0);
+    task.assignedDay=d.toDateString();
+  }
+  save(); renderBear();
+}
+
 function setBearFilter(f){
   _bearFilter=f;
   document.querySelectorAll('.bear-filter-btn').forEach(btn=>{
@@ -2301,13 +2314,23 @@ function renderBearTable(){
           onchange="saveBearComment(${t.id},this.value)"
           onfocus="this.rows=3" onblur="this.rows=1">${t.comment||''}</textarea>
       </td>
-      <!-- Priority -->
-      <td class="btd" style="text-align:center;min-width:80px">
-        <span class="bear-pri ${impCls[t.importance]}">${impLabel[t.importance]}</span>
-      </td>
-      <!-- Due date -->
+      <!-- Priority (editable) -->
       <td class="btd" style="text-align:center;min-width:90px">
-        <div class="bear-due ${dueCls}" style="font-size:11px">${dueLabel}</div>
+        <select class="bear-edit-select" onchange="updateBearPriority(${t.id},this.value)"
+          style="border-radius:8px;padding:3px 4px;font-size:11px;font-weight:600;border:1.5px solid;width:100%;
+            ${t.importance==='high'?'background:#F3EEFF;border-color:#CECBF6;color:#3C3489':
+              t.importance==='medium'?'background:#FEF0F0;border-color:#F7C1C1;color:#A32D2D':
+              'background:#FFFBE6;border-color:#F7E08A;color:#854F0B'}">
+          <option value="high" ${t.importance==='high'?'selected':''}>🟣 High</option>
+          <option value="medium" ${t.importance==='medium'?'selected':''}>🔴 Medium</option>
+          <option value="low" ${t.importance==='low'?'selected':''}>🟡 Low</option>
+        </select>
+      </td>
+      <!-- Due date (editable) -->
+      <td class="btd" style="text-align:center;min-width:110px">
+        <input type="date" class="bear-edit-select" value="${t.due||''}"
+          onchange="updateBearDue(${t.id},this.value)"
+          style="font-size:11px;padding:3px 5px;border-radius:8px;border:1.5px solid #e0e0e0;width:100%;color:#333;background:#fff;${dueCls==='overdue'?'border-color:#F7C1C1;background:#FEF0F0;':''}${dueCls==='due-today'?'border-color:#F7C1C1;':''}">
       </td>
       <!-- Reply -->
       <td class="btd" style="min-width:110px">
