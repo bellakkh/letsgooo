@@ -405,7 +405,6 @@ document.dispatchEvent(new Event('fb-ready'));
   <button class="tab active" onclick="showTab('dashboard')">🏠 Home</button>
   <button class="tab" onclick="showTab('weekly')">🗓️ Chores</button>
   <button class="tab" onclick="showTab('learning')">📚 Learning</button>
-  <button class="tab" onclick="showTab('goals')">🎯 Goals</button>
   <button class="tab" onclick="showTab('reportcard')">📊 Report</button>
   <button class="tab locked" onclick="requirePin('approvals')">✅ Approvals <span id="approval-badge" style="display:none;background:#E24B4A;color:#fff;border-radius:99px;padding:1px 6px;font-size:10px;margin-left:2px">0</span></button>
   <button class="tab locked" onclick="requirePin('manage')">⚙️ Manage</button>
@@ -540,16 +539,14 @@ document.dispatchEvent(new Event('fb-ready'));
   <div class="card"><div class="section-header"><div class="section-title" style="margin:0">Learning log</div></div><div id="learning-log"></div></div>
 </div>
 
-<!-- GOALS -->
-<div id="tab-goals" class="section">
-  <div class="card"><div class="section-header"><div class="section-title" style="margin:0">Savings goals</div></div><div style="font-size:12px;color:#888;margin-bottom:12px">Set a goal and watch the points roll in! 🚀</div><div id="goals-list"></div></div>
-  <div class="card"><div class="section-title">➕ Add a goal</div><div class="input-row"><select id="goal-kid" style="flex:0 0 115px"></select><input type="text" id="goal-name" placeholder="Goal name (e.g. new game 🎮)" style="flex:2"><input type="number" id="goal-pts" placeholder="pts needed" style="width:95px" min="1"><button class="btn btn-purple" onclick="addGoal()">+ Add</button></div></div>
-</div>
-
-<!-- REPORT CARD -->
+<!-- REPORT (merged Goals + Report Card) -->
 <div id="tab-reportcard" class="section">
   <div class="card"><div class="section-header"><div class="section-title" style="margin:0">Weekly report card</div></div><div id="report-card-content"></div></div>
+  <div class="card"><div class="section-header"><div class="section-title" style="margin:0">🎯 Savings goals</div></div><div style="font-size:12px;color:#888;margin-bottom:12px">Set a goal and watch the points roll in! 🚀</div><div id="goals-list"></div></div>
+  <div class="card"><div class="section-title">➕ Add a goal</div><div class="input-row"><select id="goal-kid" style="flex:0 0 115px"></select><input type="text" id="goal-name" placeholder="Goal name (e.g. new game 🎮)" style="flex:2"><input type="number" id="goal-pts" placeholder="pts needed" style="width:95px" min="1"><button class="btn btn-purple" onclick="addGoal()">+ Add</button></div></div>
 </div>
+<!-- tab-goals kept as hidden alias so renderGoals() still works -->
+<div id="tab-goals" style="display:none"></div>
 
 <!-- APPROVALS -->
 <div id="tab-approvals" class="section">
