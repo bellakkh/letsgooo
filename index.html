@@ -1507,7 +1507,7 @@ function markDone(kid,choreId,type){
     state.pendingChores.push({id:Date.now(),kid,kidName:p.name,choreId,choreName:c.name,choreIcon:choreIcon(c.name,c.icon),type,isStudy,pts,double,isCOTW,cotwBonus:isCOTW?state.cotw.bonusPts:0,date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString(),status:'pending'});
     save();render();alert('⏳ '+p.name+' marked "'+c.name+'" as done!\nWaiting for parent approval to award '+pts+' pts.');
   } else {
-    const penalty=state.rates.penalty||5;
+    const penalty=c.customPenalty!==undefined?c.customPenalty:(state.rates.penalty||5);
     if(!confirm('Mark "'+c.name+'" as missed for '+p.name+'?\nThis will deduct '+penalty+' points from their balance.\n\nCurrent balance: '+totalPts(kid)+' pts → '+(totalPts(kid)-penalty)+' pts')) return;
     p.chorePoints=(p.chorePoints||0)-penalty;p.missed=(p.missed||0)+1;p.weeklyMissed=(p.weeklyMissed||0)+1;p.streak=0;
     save();render();
@@ -1708,11 +1708,67 @@ function redeemPartial(){
 function editChoreName(id){
   const c=state.chores.find(ch=>ch.id===id);
   if(!c)return;
-  const val=prompt('Edit task name:',c.name);
-  if(val===null)return;
-  const trimmed=val.trim();
-  if(!trimmed){alert('Name cannot be empty.');return;}
-  c.name=trimmed;
+  // Build inline edit modal
+  const overlay=document.createElement('div');
+  overlay.id='edit-chore-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px';
+  const isBonus=c.type==='bonus'||c.type==='study-bonus';
+  const isRequired=c.type==='responsibility'||c.type==='study-required';
+  const penaltyVal=c.customPenalty!==undefined?c.customPenalty:state.rates.penalty||5;
+  overlay.innerHTML=`
+    <div style="background:#fff;border-radius:16px;padding:20px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.15)">
+      <div style="font-size:15px;font-weight:700;color:#3C3489;margin-bottom:16px">✏️ Edit task</div>
+      <div style="margin-bottom:12px">
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Task name</label>
+        <input id="ecn-name" type="text" value="${c.name.replace(/"/g,'&quot;')}"
+          style="width:100%;height:38px;padding:0 10px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;font-family:inherit">
+      </div>
+      ${isBonus?`<div style="margin-bottom:16px">
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Points earned</label>
+        <input id="ecn-pts" type="number" value="${c.pts}"
+          style="width:100%;height:38px;padding:0 10px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;font-family:inherit">
+        <div style="font-size:11px;color:#888;margin-top:4px">Can be negative. Default set by difficulty in Manage.</div>
+      </div>`:''}
+      ${isRequired?`<div style="margin-bottom:16px">
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Penalty if missed (pts)</label>
+        <input id="ecn-penalty" type="number" value="${penaltyVal}"
+          style="width:100%;height:38px;padding:0 10px;border:1.5px solid #FCEBEB;border-radius:10px;font-size:14px;font-family:inherit;background:#FEF8F8">
+        <div style="font-size:11px;color:#888;margin-top:4px">Leave blank to use the global penalty (${state.rates.penalty||5} pts). Overrides only this task.</div>
+      </div>`:''}
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-sm" onclick="closeEditChore()" style="font-size:13px">Cancel</button>
+        <button class="btn btn-green" onclick="saveEditChore(${id})" style="font-size:13px">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  // Focus name field
+  setTimeout(()=>{const inp=document.getElementById('ecn-name');if(inp){inp.focus();inp.select();}},50);
+}
+
+function closeEditChore(){
+  const el=document.getElementById('edit-chore-overlay');
+  if(el)el.remove();
+}
+
+function saveEditChore(id){
+  const c=state.chores.find(ch=>ch.id===id);
+  if(!c){closeEditChore();return;}
+  const nameEl=document.getElementById('ecn-name');
+  const ptsEl=document.getElementById('ecn-pts');
+  const penEl=document.getElementById('ecn-penalty');
+  const name=(nameEl?nameEl.value:'').trim();
+  if(!name){alert('Name cannot be empty.');return;}
+  c.name=name;
+  if(ptsEl){
+    const pts=parseInt(ptsEl.value);
+    if(!isNaN(pts))c.pts=pts;
+  }
+  if(penEl){
+    const pen=parseInt(penEl.value);
+    if(!isNaN(pen))c.customPenalty=pen;
+    else delete c.customPenalty;
+  }
+  closeEditChore();
   save();render();
 }
 
@@ -2071,7 +2127,7 @@ function renderManage(){
   setTimeout(()=>{togglePtsInput();},50);
   const types={responsibility:'resp',bonus:'bonus','study-required':'study-req','study-bonus':'study-bonus'};
   const diffLabel={easy:'Easy',medium:'Medium',hard:'Hard'};
-  Object.keys(types).forEach(t=>{const el=document.getElementById(types[t]+'-list');if(!el)return;const items=state.chores.filter(c=>c.type===t);const isBonus=t==='bonus'||t==='study-bonus';el.innerHTML=items.length===0?'<div style="font-size:12px;color:#888">None yet.</div>':items.map(c=>`<div class="chore-row"><span style="font-size:18px;flex-shrink:0">${choreIcon(c.name,c.icon)}</span><div style="flex:1;font-size:13px;font-weight:500">${c.name} <span style="font-size:10px;color:#888;font-weight:400">${diffLabel[c.diff||'easy']}</span></div><div style="display:flex;align-items:center;gap:5px"><span class="badge ${isBonus?'badge-green':'badge-red'}">${isBonus?'+'+c.pts+' pts':'-'+state.rates.penalty+' if missed'}</span><button class="btn btn-sm" onclick="editChoreName(${c.id})" title="Edit name" style="padding:3px 8px">✏️</button><button class="btn btn-sm btn-red" onclick="deleteChore(${c.id})" style="padding:3px 8px">✕</button></div></div>`).join('');});
+  Object.keys(types).forEach(t=>{const el=document.getElementById(types[t]+'-list');if(!el)return;const items=state.chores.filter(c=>c.type===t);const isBonus=t==='bonus'||t==='study-bonus';el.innerHTML=items.length===0?'<div style="font-size:12px;color:#888">None yet.</div>':items.map(c=>`<div class="chore-row"><span style="font-size:18px;flex-shrink:0">${choreIcon(c.name,c.icon)}</span><div style="flex:1;font-size:13px;font-weight:500">${c.name} <span style="font-size:10px;color:#888;font-weight:400">${diffLabel[c.diff||'easy']}</span></div><div style="display:flex;align-items:center;gap:5px"><span class="badge ${isBonus?'badge-green':'badge-red'}">${isBonus?'+'+c.pts+' pts':'-('+( (c.customPenalty!==undefined?c.customPenalty:state.rates.penalty)||5)+') if missed'}</span><button class="btn btn-sm" onclick="editChoreName(${c.id})" title="Edit name" style="padding:3px 8px">✏️</button><button class="btn btn-sm btn-red" onclick="deleteChore(${c.id})" style="padding:3px 8px">✕</button></div></div>`).join('');});
   const cotwSel=document.getElementById('cotw-chore-sel');if(cotwSel){const bonus=state.chores.filter(c=>c.type==='bonus');cotwSel.innerHTML=bonus.map(c=>`<option value="${c.id}"${state.cotw.choreId===c.id?' selected':''}>${c.name}</option>`).join('');const cbp=document.getElementById('cotw-bonus-pts');if(cbp)cbp.value=state.cotw.bonusPts;}
   const sbp=document.getElementById('streak-bonus-pts');if(sbp)sbp.value=state.streakSettings.bonusPts||25;
   const dds=document.getElementById('double-day-sel');if(dds)dds.value=state.streakSettings.doubleDay||'';
