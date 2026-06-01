@@ -679,7 +679,35 @@ document.dispatchEvent(new Event('fb-ready'));
         <div id="edit-log"></div>
       </div>
     </div>
-    <div class="card"><div class="section-header"><div class="section-title" style="margin:0">Redeem points</div></div><div id="redeem-section"></div></div>
+    <!-- Redemption calculator -->
+    <div class="card" style="border:1.5px solid #AFA9EC;background:linear-gradient(135deg,#f8f7ff,#fff)">
+      <div class="section-header"><span style="font-size:18px">🧮</span><div class="section-title" style="margin:0">Redemption calculator</div></div>
+      <div style="font-size:12px;color:#888;margin-bottom:12px">Calculate how many points you need — or enter points to see what you get. Redeem any amount without touching the rest.</div>
+      <div class="input-row" style="margin-bottom:8px">
+        <select id="calc-kid" style="flex:0 0 120px"></select>
+        <select id="calc-type" style="flex:0 0 130px" onchange="calcUpdate()">
+          <option value="screen">📺 Screen time</option>
+          <option value="money">💵 Money</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:10px">
+        <div>
+          <div style="font-size:11px;color:#888;margin-bottom:4px" id="calc-left-label">Minutes of screen time</div>
+          <input type="number" id="calc-amount" placeholder="e.g. 30" min="0" style="width:100%" oninput="calcFromAmount()">
+        </div>
+        <div style="text-align:center;font-size:18px;color:#888">⇄</div>
+        <div>
+          <div style="font-size:11px;color:#888;margin-bottom:4px">Points needed</div>
+          <input type="number" id="calc-points" placeholder="e.g. 10" min="0" style="width:100%" oninput="calcFromPoints()">
+        </div>
+      </div>
+      <div id="calc-preview" style="background:#f8f7ff;border-radius:10px;padding:10px 12px;font-size:13px;color:#3C3489;margin-bottom:10px;display:none"></div>
+      <div id="calc-actions" style="display:none;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-green" id="calc-redeem-btn" onclick="redeemPartial()" style="font-size:12px">Redeem</button>
+        <button class="btn btn-sm" onclick="calcClear()" style="font-size:12px">Clear</button>
+      </div>
+    </div>
+    <div class="card"><div class="section-header"><div class="section-title" style="margin:0">Full balance redemption</div></div><div id="redeem-section"></div></div>
     <div class="card"><div class="section-header"><div class="section-title" style="margin:0">Redemption history</div></div><div id="history-list"></div></div>
   </div>
 </div>
@@ -1479,7 +1507,9 @@ function markDone(kid,choreId,type){
     state.pendingChores.push({id:Date.now(),kid,kidName:p.name,choreId,choreName:c.name,choreIcon:choreIcon(c.name,c.icon),type,isStudy,pts,double,isCOTW,cotwBonus:isCOTW?state.cotw.bonusPts:0,date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString(),status:'pending'});
     save();render();alert('⏳ '+p.name+' marked "'+c.name+'" as done!\nWaiting for parent approval to award '+pts+' pts.');
   } else {
-    p.chorePoints=(p.chorePoints||0)-state.rates.penalty;p.missed=(p.missed||0)+1;p.weeklyMissed=(p.weeklyMissed||0)+1;p.streak=0;
+    const penalty=state.rates.penalty||5;
+    if(!confirm('Mark "'+c.name+'" as missed for '+p.name+'?\nThis will deduct '+penalty+' points from their balance.\n\nCurrent balance: '+totalPts(kid)+' pts → '+(totalPts(kid)-penalty)+' pts')) return;
+    p.chorePoints=(p.chorePoints||0)-penalty;p.missed=(p.missed||0)+1;p.weeklyMissed=(p.weeklyMissed||0)+1;p.streak=0;
     save();render();
   }
 }
@@ -1576,6 +1606,116 @@ function applySavingBonus(kid){
   } else {alert('Need at least 50 pts to claim a saving bonus.');}
   save();render();
 }
+// ─── REDEMPTION CALCULATOR ────────────────────────────────────
+function calcUpdate(){
+  // Update label based on type
+  const type=document.getElementById('calc-type').value;
+  const lbl=document.getElementById('calc-left-label');
+  if(lbl)lbl.textContent=type==='screen'?'Minutes of screen time':'Amount in $';
+  calcClear();
+}
+
+function calcFromAmount(){
+  const type=document.getElementById('calc-type').value;
+  const amt=parseFloat(document.getElementById('calc-amount').value);
+  if(isNaN(amt)||amt<=0){calcHide();return;}
+  let pts;
+  if(type==='screen'){
+    // amt = minutes, rate = pts per 30 min
+    pts=Math.ceil((amt/30)*state.rates.screen);
+  } else {
+    // amt = dollars, rate = pts per $1
+    pts=Math.ceil(amt*state.rates.money);
+  }
+  document.getElementById('calc-points').value=pts;
+  calcShow(pts,amt,type);
+}
+
+function calcFromPoints(){
+  const type=document.getElementById('calc-type').value;
+  const pts=parseFloat(document.getElementById('calc-points').value);
+  if(isNaN(pts)||pts<=0){calcHide();return;}
+  let amt;
+  if(type==='screen'){
+    amt=Math.floor((pts/state.rates.screen)*30); // minutes
+  } else {
+    amt=(pts/state.rates.money).toFixed(2); // dollars
+  }
+  document.getElementById('calc-amount').value=amt;
+  calcShow(pts,amt,type);
+}
+
+function calcShow(pts,amt,type){
+  const kid=document.getElementById('calc-kid').value;
+  const p=state.participants[kid];
+  if(!p)return;
+  const balance=totalPts(kid);
+  const canAfford=balance>=pts;
+  const disp=type==='screen'?amt+' min screen time':'$'+parseFloat(amt).toFixed(2);
+  const prev=document.getElementById('calc-preview');
+  const actDiv=document.getElementById('calc-actions');
+  const btn=document.getElementById('calc-redeem-btn');
+  if(prev){
+    prev.style.display='block';
+    prev.style.background=canAfford?'#EAF3DE':'#FCEBEB';
+    prev.style.color=canAfford?'#0F6E56':'#A32D2D';
+    prev.innerHTML=canAfford
+      ?`<b>${p.name}</b> can redeem <b>${pts} pts</b> for <b>${disp}</b>.<br><span style="font-size:11px">Balance: ${balance} pts → ${balance-pts} pts remaining</span>`
+      :`<b>${p.name}</b> needs <b>${pts} pts</b> but only has <b>${balance} pts</b>.<br><span style="font-size:11px">Shortfall: ${pts-balance} pts</span>`;
+  }
+  if(actDiv)actDiv.style.display='flex';
+  if(btn){
+    btn.disabled=!canAfford;
+    btn.style.opacity=canAfford?'1':'0.5';
+    btn.style.cursor=canAfford?'pointer':'not-allowed';
+    btn.textContent=canAfford?'Redeem '+pts+' pts for '+disp:'Not enough points';
+  }
+}
+
+function calcClear(){
+  const a=document.getElementById('calc-amount');const p=document.getElementById('calc-points');
+  if(a)a.value='';if(p)p.value='';
+  calcHide();
+}
+
+function calcHide(){
+  const prev=document.getElementById('calc-preview');const act=document.getElementById('calc-actions');
+  if(prev)prev.style.display='none';if(act)act.style.display='none';
+}
+
+function redeemPartial(){
+  const kid=document.getElementById('calc-kid').value;
+  const type=document.getElementById('calc-type').value;
+  const pts=parseFloat(document.getElementById('calc-points').value);
+  const amt=document.getElementById('calc-amount').value;
+  const p=state.participants[kid];
+  if(!p||isNaN(pts)||pts<=0)return;
+  const balance=totalPts(kid);
+  if(pts>balance){alert('Not enough points.');return;}
+  const disp=type==='screen'?amt+' min screen time':'$'+parseFloat(amt).toFixed(2);
+  if(!confirm('Redeem '+pts+' pts for '+p.name+' as '+disp+'?\nRemaining balance: '+(balance-pts)+' pts'))return;
+  // Deduct proportionally from chore/learn pools
+  const choreRatio=balance>0?(p.chorePoints||0)/balance:1;
+  const deductChore=Math.min(p.chorePoints||0,Math.round(pts*choreRatio));
+  const deductLearn=pts-deductChore;
+  p.chorePoints=(p.chorePoints||0)-deductChore;
+  p.learnPoints=(p.learnPoints||0)-deductLearn;
+  state.history.push({kid:p.name,reward:disp,pts:pts,type,date:new Date().toLocaleDateString(),partial:true});
+  calcClear();save();render();
+}
+
+// ─── TASK NAME EDITING ────────────────────────────────────────
+function editChoreName(id){
+  const c=state.chores.find(ch=>ch.id===id);
+  if(!c)return;
+  const val=prompt('Edit task name:',c.name);
+  if(val===null)return;
+  const trimmed=val.trim();
+  if(!trimmed){alert('Name cannot be empty.');return;}
+  c.name=trimmed;
+  save();render();
+}
+
 function redeem(kid,type){const p=state.participants[kid];if(!p)return;const total=totalPts(kid);if(total<=0){alert('No points to redeem!');return;}const reward=type==='screen'?(total/state.rates.screen*30)+'min screen time':'$'+(total/state.rates.money).toFixed(2)+' cash';if(!confirm('Redeem '+total+' points for '+p.name+' as '+reward+'?'))return;state.history.push({kid:p.name,reward,pts:total,type,date:new Date().toLocaleDateString()});['chorePoints','learnPoints','bonusDone','learnDone','missed','streak','weeklyDone','weeklyMissed','weeklyLearn'].forEach(f=>p[f]=0);save();render();}
 function resetKid(kid){const p=state.participants[kid];if(!p||!confirm('Reset '+p.name+"'s month?"))return;['chorePoints','learnPoints','bonusDone','learnDone','missed','streak','weeklyDone','weeklyMissed','weeklyLearn'].forEach(f=>p[f]=0);save();render();}
 
@@ -1931,7 +2071,7 @@ function renderManage(){
   setTimeout(()=>{togglePtsInput();},50);
   const types={responsibility:'resp',bonus:'bonus','study-required':'study-req','study-bonus':'study-bonus'};
   const diffLabel={easy:'Easy',medium:'Medium',hard:'Hard'};
-  Object.keys(types).forEach(t=>{const el=document.getElementById(types[t]+'-list');if(!el)return;const items=state.chores.filter(c=>c.type===t);const isBonus=t==='bonus'||t==='study-bonus';el.innerHTML=items.length===0?'<div style="font-size:12px;color:#888">None yet.</div>':items.map(c=>`<div class="chore-row"><span style="font-size:18px;flex-shrink:0">${choreIcon(c.name,c.icon)}</span><div style="flex:1;font-size:13px;font-weight:500">${c.name} <span style="font-size:10px;color:#888;font-weight:400">${diffLabel[c.diff||'easy']}</span></div><div style="display:flex;align-items:center;gap:6px"><span class="badge ${isBonus?'badge-green':'badge-red'}">${isBonus?'+'+c.pts+' pts':'-'+state.rates.penalty+' if missed'}</span><button class="btn btn-sm" onclick="deleteChore(${c.id})">Remove</button></div></div>`).join('');});
+  Object.keys(types).forEach(t=>{const el=document.getElementById(types[t]+'-list');if(!el)return;const items=state.chores.filter(c=>c.type===t);const isBonus=t==='bonus'||t==='study-bonus';el.innerHTML=items.length===0?'<div style="font-size:12px;color:#888">None yet.</div>':items.map(c=>`<div class="chore-row"><span style="font-size:18px;flex-shrink:0">${choreIcon(c.name,c.icon)}</span><div style="flex:1;font-size:13px;font-weight:500">${c.name} <span style="font-size:10px;color:#888;font-weight:400">${diffLabel[c.diff||'easy']}</span></div><div style="display:flex;align-items:center;gap:5px"><span class="badge ${isBonus?'badge-green':'badge-red'}">${isBonus?'+'+c.pts+' pts':'-'+state.rates.penalty+' if missed'}</span><button class="btn btn-sm" onclick="editChoreName(${c.id})" title="Edit name" style="padding:3px 8px">✏️</button><button class="btn btn-sm btn-red" onclick="deleteChore(${c.id})" style="padding:3px 8px">✕</button></div></div>`).join('');});
   const cotwSel=document.getElementById('cotw-chore-sel');if(cotwSel){const bonus=state.chores.filter(c=>c.type==='bonus');cotwSel.innerHTML=bonus.map(c=>`<option value="${c.id}"${state.cotw.choreId===c.id?' selected':''}>${c.name}</option>`).join('');const cbp=document.getElementById('cotw-bonus-pts');if(cbp)cbp.value=state.cotw.bonusPts;}
   const sbp=document.getElementById('streak-bonus-pts');if(sbp)sbp.value=state.streakSettings.bonusPts||25;
   const dds=document.getElementById('double-day-sel');if(dds)dds.value=state.streakSettings.doubleDay||'';
@@ -1940,6 +2080,9 @@ function renderManage(){
 
 function renderRewards(){
   if(!unlocked.rewards)return;const ids=pIds();
+  // Populate calculator kid dropdown
+  const ck=document.getElementById('calc-kid');
+  if(ck)ck.innerHTML=ids.map(k=>`<option value="${k}">${state.participants[k].name}</option>`).join('');
   const sr=document.getElementById('screen-rate');const mr=document.getElementById('money-rate');const pp=document.getElementById('penalty-pts');
   if(sr)sr.value=state.rates.screen;if(mr)mr.value=state.rates.money;if(pp)pp.value=state.rates.penalty;
   const sb50=document.getElementById('saving-bonus-50');const sb100=document.getElementById('saving-bonus-100');
@@ -1984,7 +2127,7 @@ function updateEditPreview(){
   const before=p[field]||0;
   let after;
   if(action==='add')after=before+amount;
-  else if(action==='subtract')after=Math.max(0,before-amount);
+  else if(action==='subtract')after=before-amount;
   else after=amount;
   const diff=after-before;
   const el=document.getElementById('edit-preview');
@@ -2084,6 +2227,10 @@ function addBearTask(){
 function toggleBearDone(id){
   const task=(state.bearTasks||[]).find(t=>t.id===id);
   if(!task)return;
+  if(!task.done){
+    const berryVal={low:0.5,medium:1,high:1.5}[task.importance]||1;
+    if(!confirm('Mark "'+task.text+'" as completed?\nThis earns '+berryVal+' berry point'+(berryVal!==1?'s':'')+'.')) return;
+  }
   task.done=!task.done;
   task.doneDate=task.done?new Date().toLocaleDateString():null;
   save(); renderBear(); renderBerryDashboard();
