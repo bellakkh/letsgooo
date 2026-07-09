@@ -308,7 +308,7 @@ textarea{height:auto;padding:8px 10px;resize:vertical}
 // Replace these values with your own Firebase project config
 // (see setup instructions in the Settings tab after publishing)
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, doc, setDoc, onSnapshot, enableIndexedDbPersistence }
+import { getFirestore, doc, setDoc, onSnapshot }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const FIREBASE_CONFIG = {
@@ -329,9 +329,8 @@ let _fbUnsubscribe = null;
 if (FB_CONFIGURED) {
   try {
     const app = initializeApp(FIREBASE_CONFIG);
+    // Use memory cache (avoids multi-tab conflicts with deprecated IndexedDb persistence)
     db = getFirestore(app);
-    // Enable offline persistence so the app works without internet
-    enableIndexedDbPersistence(db).catch(() => {});
   } catch(e) {
     console.warn('Firebase init failed:', e);
     db = null;
@@ -344,7 +343,7 @@ window._fb = {
   save: async (state) => {
     if (!db) return;
     try {
-      await setDoc(doc(db, 'letsgooo', 'state'), state);
+      await setDoc(doc(db, 'letsgooo', 'state'), state, { merge: false }); // full replace is intentional — state is single source of truth
     } catch(e) {
       console.warn('Firebase save failed:', e);
     }
@@ -1149,8 +1148,14 @@ function save(){
   // Debounce Firebase saves (wait 800ms after last change)
   if (window._fb && window._fb.configured) {
     clearTimeout(_saveTimer);
-    _saveTimer = setTimeout(() => {
-      window._fb.save(JSON.parse(JSON.stringify(state)));
+    _saveTimer = setTimeout(async () => {
+      try {
+        await window._fb.save(JSON.parse(JSON.stringify(state)));
+        showSyncStatus('synced');
+      } catch(e) {
+        showSyncStatus('offline');
+        console.warn('Save failed:', e);
+      }
     }, 800);
   }
   updateSyncStatus();
@@ -1201,7 +1206,7 @@ function startFirebaseSync() {
   _fbListening = true;
   showSyncStatus('syncing');
   window._fb.listen((remoteState) => {
-    if (!remoteState || !remoteState.participants) return;
+    if (!remoteState || remoteState._deleted || !remoteState.participants) return;
     // Merge: remote wins for shared data, keep local UI state
     const uiFields = ['weekOffset','calView','dayOffset'];
     const localUI = {};
@@ -2185,6 +2190,33 @@ function updateEditPreview(){
   const diff=after-before;
   const el=document.getElementById('edit-preview');
   if(el){el.textContent=`Preview: ${p.name}'s ${type} pts ${before} → ${after} (${diff>=0?'+':''}${diff})`;el.style.color=diff>=0?'#0F6E56':'#A32D2D';}
+}
+
+function forceSyncNow(){
+  if(!window._fb||!window._fb.configured){alert('Firebase not connected.');return;}
+  showSyncStatus('saving');
+  window._fb.save(JSON.parse(JSON.stringify(state)))
+    .then(()=>{ showSyncStatus('synced'); alert('✅ Data pushed to Firebase successfully!'); })
+    .catch(e=>{ showSyncStatus('offline'); alert('❌ Sync failed: '+e.message+'\n\nCheck your internet connection and Firebase console.'); });
+}
+
+function showSyncDiag(){
+  const fb=window._fb;
+  const lines=[
+    '📋 Sync diagnostics',
+    '─────────────────────',
+    'Firebase configured: '+(fb&&fb.configured?'✅ Yes':'❌ No'),
+    'Listener active: '+(_fbListening?'✅ Yes':'❌ No'),
+    'Save timer: '+(_saveTimer?'⏳ Pending':'✅ Idle'),
+    'Local storage: '+(()=>{try{const d=localStorage.getItem('letsgooo_v1');return d?'✅ '+Math.round(d.length/1024)+'KB':'❌ Empty';}catch(e){return '❌ Error';}})(),
+    'Participants: '+Object.keys(state.participants||{}).length,
+    'Chores: '+(state.chores||[]).length,
+    'Bear tasks: '+(state.bearTasks||[]).length,
+    '─────────────────────',
+    'Tip: Open browser DevTools (F12) → Console for detailed errors.',
+    'Tip: Open Firebase Console → Firestore → letsgooo/state to see live data.',
+  ];
+  alert(lines.join('\n'));
 }
 
 function renderSettings(){
